@@ -133,6 +133,8 @@ import coil3.imageLoader
 import coil3.request.ImageRequest
 import coil3.request.allowHardware
 import coil3.toBitmap
+import com.metrolist.innertube.YouTube
+import com.metrolist.innertube.models.WatchEndpoint
 import com.metrolist.music.LocalDatabase
 import com.metrolist.music.LocalDownloadUtil
 import com.metrolist.music.LocalListenTogetherManager
@@ -239,11 +241,11 @@ fun BottomSheetPlayer(
     )
     val playerButtonsStyle by rememberEnumPreference(
         key = PlayerButtonsStyleKey,
-        defaultValue = PlayerButtonsStyle.DEFAULT,
+        defaultValue = PlayerButtonsStyle.PRIMARY,
     )
 
     val isSystemInDarkTheme = isSystemInDarkTheme()
-    val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
+    val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.ON)
     val useDarkTheme =
         remember(darkTheme, isSystemInDarkTheme) {
             if (darkTheme == DarkMode.AUTO) isSystemInDarkTheme else darkTheme == DarkMode.ON
@@ -803,12 +805,14 @@ fun BottomSheetPlayer(
     }
 
     val dismissedBound = QueuePeekHeight + WindowInsets.systemBars.asPaddingValues().calculateBottomPadding()
+    val screenHeight = LocalConfiguration.current.screenHeightDp.dp
+    val splitViewPeek = (screenHeight * 0.37f).coerceAtLeast(dismissedBound + 160.dp)
 
     val queueSheetState =
         rememberBottomSheetState(
             dismissedBound = dismissedBound,
             expandedBound = state.expandedBound,
-            collapsedBound = dismissedBound + 1.dp,
+            collapsedBound = splitViewPeek,
             initialAnchor = 1,
         )
 
@@ -1012,12 +1016,19 @@ fun BottomSheetPlayer(
                                         indication = null,
                                         interactionSource = remember { MutableInteractionSource() },
                                         onClick = {
-                                            val albumId = mediaMetadata.album?.id
-                                                ?: currentSong?.album?.id
-                                                ?: currentSong?.song?.albumId
-                                            if (albumId != null) {
-                                                navController.navigate("album/$albumId")
-                                                state.collapseSoft()
+                                            scope.launch {
+                                                val endpoint = withContext(Dispatchers.IO) {
+                                                    YouTube.next(WatchEndpoint(videoId = mediaMetadata.id))
+                                                        .getOrNull()
+                                                        ?.relatedEndpoint
+                                                }
+                                                val browseId = endpoint?.browseId
+                                                if (browseId != null) {
+                                                    navController.navigate(
+                                                        "youtube_browse/$browseId?params=${endpoint.params.orEmpty()}",
+                                                    )
+                                                    state.collapseSoft()
+                                                }
                                             }
                                         },
                                         onLongClick = {
@@ -1366,6 +1377,11 @@ fun BottomSheetPlayer(
 
             Spacer(Modifier.height(24.dp))
 
+            val seekTrackHeight by animateDpAsState(
+                targetValue = if (sliderPosition != null) 22.dp else 14.dp,
+                label = "seekTrackHeight",
+            )
+
             when (sliderStyle) {
                 SliderStyle.DEFAULT -> {
                     Slider(
@@ -1391,7 +1407,14 @@ fun BottomSheetPlayer(
                             }
                         },
                         enabled = !isListenTogetherGuest,
-                        colors = PlayerSliderColors.getSliderColors(textButtonColor, playerBackground, useDarkTheme),
+                        thumb = { Spacer(modifier = Modifier.size(0.dp)) },
+                        track = { sliderState ->
+                            PlayerSliderTrack(
+                                sliderState = sliderState,
+                                colors = PlayerSliderColors.getSliderColors(textButtonColor, playerBackground, useDarkTheme),
+                                trackHeight = seekTrackHeight,
+                            )
+                        },
                         modifier = Modifier.padding(horizontal = PlayerHorizontalPadding),
                     )
                 }
@@ -1475,6 +1498,7 @@ fun BottomSheetPlayer(
                             PlayerSliderTrack(
                                 sliderState = sliderState,
                                 colors = PlayerSliderColors.getSliderColors(textButtonColor, playerBackground, useDarkTheme),
+                                trackHeight = seekTrackHeight,
                             )
                         },
                         modifier = Modifier.padding(horizontal = PlayerHorizontalPadding),

@@ -1,0 +1,33 @@
+rules_version = '2';
+
+// ===============================================================
+// Assumed Data Model
+// ===============================================================
+//
+// Collection: runtime
+//   Document: config
+//     schemaVersion: number (required, >= 1)
+//     updatedAt: timestamp (required)
+//     preferredClientOrder: list<string>
+//     apkUpdateRecommended: bool
+//     clients: list<map> with clientName, clientVersion, clientId, userAgent
+//     health: map { ok: bool, workingClient: string, failingClients: list<string> }
+//
+// Writes: Admin SDK only (Cloud Functions). Clients never write.
+// Reads: authenticated users (anonymous auth from the app).
+// ===============================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /runtime/{docId} {
+      // Public infrastructure (InnerTube client versions). No user data.
+      allow read: if docId in ['config', 'health'];
+      allow create, update: if false;
+      allow delete: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -51,6 +51,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.metrolist.music.R
 import com.metrolist.music.ui.screens.OptionStats
@@ -70,21 +71,33 @@ fun <E> ChipsRow(
             .horizontalScroll(rememberScrollState())
             .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Horizontal)),
     ) {
-        Spacer(Modifier.width(12.dp))
+        Spacer(Modifier.width(16.dp))
 
         chips.forEach { (value, label) ->
             FilterChip(
-                label = { Text(label) },
+                label = {
+                    Text(
+                        text = label,
+                        style = MaterialTheme.typography.labelLarge.copy(
+                            fontWeight = FontWeight.Medium,
+                        ),
+                    )
+                },
                 selected = currentValue == value,
                 colors = FilterChipDefaults.filterChipColors(
-                    containerColor = containerColor,
+                    containerColor = Color(0xFF272727),
+                    labelColor = Color.White,
+                    selectedContainerColor = Color(0xFF3E3E3E),
+                    selectedLabelColor = Color.White,
+                    selectedLeadingIconColor = Color.White,
                 ),
                 onClick = { onValueUpdate(value) },
-                shape = RoundedCornerShape(16.dp),
-                border = null
+                shape = RoundedCornerShape(20.dp),
+                border = null,
+                modifier = Modifier.padding(vertical = 2.dp),
             )
 
-            Spacer(Modifier.width(8.dp))
+            Spacer(Modifier.width(10.dp))
         }
     }
 }
@@ -195,10 +208,14 @@ fun <Int> ChoiceChipsRow(
                         label = { Text(label) },
                         selected = currentValue == value,
                         colors = FilterChipDefaults.filterChipColors(
-                            containerColor = containerColor,
+                            containerColor = Color(0xFF2A2A2A),
+                            labelColor = Color.White,
+                            selectedContainerColor = Color(0xFF3F3F3F),
+                            selectedLabelColor = Color.White,
+                            selectedLeadingIconColor = Color.White,
                         ),
                         onClick = { onValueUpdate(value) },
-                        shape = RoundedCornerShape(16.dp),
+                        shape = RoundedCornerShape(20.dp),
                         border = null
                     )
                 }

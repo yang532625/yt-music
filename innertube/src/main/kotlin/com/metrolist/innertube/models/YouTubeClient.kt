@@ -52,14 +52,14 @@ data class YouTubeClient(
         const val REFERER_YOUTUBE_MUSIC = "$ORIGIN_YOUTUBE_MUSIC/"
         const val API_URL_YOUTUBE_MUSIC = "$ORIGIN_YOUTUBE_MUSIC/youtubei/v1/"
 
-        val WEB = YouTubeClient(
+        var WEB = YouTubeClient(
             clientName = "WEB",
             clientVersion = "2.20260114.08.00",
             clientId = "1",
             userAgent = USER_AGENT_WEB,
         )
 
-        val WEB_REMIX = YouTubeClient(
+        var WEB_REMIX = YouTubeClient(
             clientName = "WEB_REMIX",
             clientVersion = "1.20260114.03.00",
             clientId = "67",
@@ -69,7 +69,7 @@ data class YouTubeClient(
             useWebPoTokens = true,
         )
 
-        val WEB_CREATOR = YouTubeClient(
+        var WEB_CREATOR = YouTubeClient(
             clientName = "WEB_CREATOR",
             clientVersion = "1.20260114.05.00",
             clientId = "62",
@@ -80,7 +80,7 @@ data class YouTubeClient(
             useWebPoTokens = true,
         )
 
-        val TVHTML5 = YouTubeClient(
+        var TVHTML5 = YouTubeClient(
             clientName = "TVHTML5",
             clientVersion = "7.20260114.12.00",
             clientId = "7",
@@ -91,7 +91,7 @@ data class YouTubeClient(
             includeUserAgentInContext = true,
         )
 
-        val TVHTML5_SIMPLY = YouTubeClient(
+        var TVHTML5_SIMPLY = YouTubeClient(
             clientName = "TVHTML5_SIMPLY",
             clientVersion = "1.0",
             clientId = "75",
@@ -105,7 +105,7 @@ data class YouTubeClient(
          * Embedded player that can bypass age-restriction.
          * Does not require login for age-restricted content.
          */
-        val TVHTML5_SIMPLY_EMBEDDED_PLAYER = YouTubeClient(
+        var TVHTML5_SIMPLY_EMBEDDED_PLAYER = YouTubeClient(
             clientName = "TVHTML5_SIMPLY_EMBEDDED_PLAYER",
             clientVersion = "2.0",
             clientId = "85",
@@ -116,7 +116,7 @@ data class YouTubeClient(
             isEmbedded = true,
         )
 
-        val IOS = YouTubeClient(
+        var IOS = YouTubeClient(
             clientName = "IOS",
             clientVersion = "21.03.1",
             clientId = "5",
@@ -124,7 +124,7 @@ data class YouTubeClient(
             osVersion = "18.2.22C152",
         )
 
-        val MOBILE = YouTubeClient(
+        var MOBILE = YouTubeClient(
             clientName = "ANDROID",
             clientVersion = "21.03.38",
             clientId = "3",
@@ -138,7 +138,7 @@ data class YouTubeClient(
          * Note: The 'Authorization' key must be excluded from the header.
          * For some reason, PoToken is not required.
          */
-        val ANDROID_NO_SDK = YouTubeClient(
+        var ANDROID_NO_SDK = YouTubeClient(
             clientName = "ANDROID",
             clientVersion = "21.03.38",
             clientId = "3",
@@ -148,7 +148,7 @@ data class YouTubeClient(
             useSignatureTimestamp = false
         )
 
-        val ANDROID_VR_NO_AUTH = YouTubeClient(
+        var ANDROID_VR_NO_AUTH = YouTubeClient(
             clientName = "ANDROID_VR",
             clientVersion = "1.61.48",
             clientId = "28",
@@ -158,7 +158,7 @@ data class YouTubeClient(
             includeUserAgentInContext = true,
         )
 
-        val ANDROID_VR_1_65_10 = YouTubeClient(
+        var ANDROID_VR_1_65_10 = YouTubeClient(
             clientName = "ANDROID_VR",
             clientVersion = "1.65.10",
             clientId = "28",
@@ -178,7 +178,7 @@ data class YouTubeClient(
          * Video not playable: Kids / Paid / Movie / Private / Age-restricted.
          * This client can only be used when logged out.
          */
-        val ANDROID_VR_1_61_48 = YouTubeClient(
+        var ANDROID_VR_1_61_48 = YouTubeClient(
             clientName = "ANDROID_VR",
             clientVersion = "1.61.48",
             clientId = "28",
@@ -201,7 +201,7 @@ data class YouTubeClient(
          * Uses non adaptive bitrate, which fixes audio stuttering with YT Music.
          * Does not use AV1.
          */
-        val ANDROID_VR_1_43_32 = YouTubeClient(
+        var ANDROID_VR_1_43_32 = YouTubeClient(
             clientName = "ANDROID_VR",
             clientVersion = "1.43.32",
             clientId = "28",
@@ -223,7 +223,7 @@ data class YouTubeClient(
         /**
          * Cannot play livestreams and lacks HDR, but can play videos with music and labeled "for children".
          */
-        val ANDROID_CREATOR = YouTubeClient(
+        var ANDROID_CREATOR = YouTubeClient(
             clientName = "ANDROID_CREATOR",
             clientVersion = "25.03.101",
             clientId = "14",
@@ -244,7 +244,7 @@ data class YouTubeClient(
         /**
          * Internal YT client for an unreleased YT client. May stop working at any time.
          */
-        val VISIONOS = YouTubeClient(
+        var VISIONOS = YouTubeClient(
             clientName = "VISIONOS",
             clientVersion = "0.1",
             clientId = "101",
@@ -262,7 +262,7 @@ data class YouTubeClient(
          * The device machine id for the iPad 6th Gen (iPad7,6).
          * AV1 hardware decoding is not supported.
          */
-        val IPADOS = YouTubeClient(
+        var IPADOS = YouTubeClient(
             clientName = "IOS",
             clientVersion = "21.03.3",
             clientId = "5",
@@ -276,5 +276,82 @@ data class YouTubeClient(
             useSignatureTimestamp = false,
             packageName = "com.google.ios.youtube"
         )
+
+        @Volatile
+        var preferredOrder: List<String> = emptyList()
+            private set
+
+        fun allClients(): List<YouTubeClient> = listOf(
+            WEB,
+            WEB_REMIX,
+            WEB_CREATOR,
+            TVHTML5,
+            TVHTML5_SIMPLY,
+            TVHTML5_SIMPLY_EMBEDDED_PLAYER,
+            IOS,
+            MOBILE,
+            ANDROID_NO_SDK,
+            ANDROID_VR_NO_AUTH,
+            ANDROID_VR_1_65_10,
+            ANDROID_VR_1_61_48,
+            ANDROID_VR_1_43_32,
+            ANDROID_CREATOR,
+            VISIONOS,
+            IPADOS,
+        )
+
+        fun applyRemoteOverlay(
+            remoteClients: List<YouTubeClient>,
+            preferredClientOrder: List<String> = emptyList(),
+        ) {
+            if (preferredClientOrder.isNotEmpty()) {
+                preferredOrder = preferredClientOrder
+            }
+            if (remoteClients.isEmpty()) return
+
+            fun matches(local: YouTubeClient, remote: YouTubeClient): Boolean {
+                if (local.clientName != remote.clientName) return false
+                if (remote.clientId.isNotBlank() && local.clientId != remote.clientId) return false
+                if (!remote.friendlyName.isNullOrBlank() && local.friendlyName != remote.friendlyName) {
+                    return false
+                }
+                return true
+            }
+
+            fun merge(local: YouTubeClient, remote: YouTubeClient): YouTubeClient =
+                local.copy(
+                    clientVersion = remote.clientVersion.ifBlank { local.clientVersion },
+                    userAgent = remote.userAgent.ifBlank { local.userAgent },
+                    osName = remote.osName ?: local.osName,
+                    osVersion = remote.osVersion ?: local.osVersion,
+                    deviceMake = remote.deviceMake ?: local.deviceMake,
+                    deviceModel = remote.deviceModel ?: local.deviceModel,
+                    androidSdkVersion = remote.androidSdkVersion ?: local.androidSdkVersion,
+                    buildId = remote.buildId ?: local.buildId,
+                    cronetVersion = remote.cronetVersion ?: local.cronetVersion,
+                    packageName = remote.packageName ?: local.packageName,
+                )
+
+            remoteClients.forEach { remote ->
+                if (matches(WEB, remote)) WEB = merge(WEB, remote)
+                if (matches(WEB_REMIX, remote)) WEB_REMIX = merge(WEB_REMIX, remote)
+                if (matches(WEB_CREATOR, remote)) WEB_CREATOR = merge(WEB_CREATOR, remote)
+                if (matches(TVHTML5, remote)) TVHTML5 = merge(TVHTML5, remote)
+                if (matches(TVHTML5_SIMPLY, remote)) TVHTML5_SIMPLY = merge(TVHTML5_SIMPLY, remote)
+                if (matches(TVHTML5_SIMPLY_EMBEDDED_PLAYER, remote)) {
+                    TVHTML5_SIMPLY_EMBEDDED_PLAYER = merge(TVHTML5_SIMPLY_EMBEDDED_PLAYER, remote)
+                }
+                if (matches(IOS, remote)) IOS = merge(IOS, remote)
+                if (matches(MOBILE, remote)) MOBILE = merge(MOBILE, remote)
+                if (matches(ANDROID_NO_SDK, remote)) ANDROID_NO_SDK = merge(ANDROID_NO_SDK, remote)
+                if (matches(ANDROID_VR_NO_AUTH, remote)) ANDROID_VR_NO_AUTH = merge(ANDROID_VR_NO_AUTH, remote)
+                if (matches(ANDROID_VR_1_65_10, remote)) ANDROID_VR_1_65_10 = merge(ANDROID_VR_1_65_10, remote)
+                if (matches(ANDROID_VR_1_61_48, remote)) ANDROID_VR_1_61_48 = merge(ANDROID_VR_1_61_48, remote)
+                if (matches(ANDROID_VR_1_43_32, remote)) ANDROID_VR_1_43_32 = merge(ANDROID_VR_1_43_32, remote)
+                if (matches(ANDROID_CREATOR, remote)) ANDROID_CREATOR = merge(ANDROID_CREATOR, remote)
+                if (matches(VISIONOS, remote)) VISIONOS = merge(VISIONOS, remote)
+                if (matches(IPADOS, remote)) IPADOS = merge(IPADOS, remote)
+            }
+        }
     }
 }

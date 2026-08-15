@@ -201,13 +201,13 @@ class InnerTube {
         continuation: String? = null,
     ) = withRetry {
         httpClient.post("search") {
-            ytClient(client, setLogin = false)
+            ytClient(client, setLogin = true)
             setBody(
                 SearchBody(
                     context = client.toContext(
                         locale,
                         visitorData,
-                        null
+                        dataSyncId
                     ),
                     query = query,
                     params = params
@@ -343,10 +343,10 @@ class InnerTube {
         input: String,
     ) = withRetry {
         httpClient.post("music/get_search_suggestions") {
-            ytClient(client)
+            ytClient(client, setLogin = true)
             setBody(
                 GetSearchSuggestionsBody(
-                    context = client.toContext(locale, visitorData, null),
+                    context = client.toContext(locale, visitorData, dataSyncId),
                     input = input
                 )
             )

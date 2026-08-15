@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Metrolist</string>
+    <string name="app_name">YT Music</string>
+    <string name="app_name_long">YouTube Music</string>
+    <string name="samples">Samples</string>
+    <string name="music_wordmark">Music</string>
+    <string name="fab_new">New</string>
+    <string name="recent_activity">Recent activity</string>
 </resources>

@@ -75,6 +75,7 @@ import com.metrolist.music.ui.menu.YouTubeAlbumMenu
 import com.metrolist.music.ui.menu.YouTubeArtistMenu
 import com.metrolist.music.ui.menu.YouTubePlaylistMenu
 import com.metrolist.music.ui.menu.YouTubeSongMenu
+import com.metrolist.music.ui.screens.ExploreScreen
 import com.metrolist.music.utils.rememberPreference
 import com.metrolist.music.viewmodels.OnlineSearchSuggestionViewModel
 import kotlinx.coroutines.FlowPreview
@@ -394,6 +395,15 @@ fun OnlineSearchScreen(
                 modifier = Modifier.animateItem(),
                 pureBlack = pureBlack,
             )
+        }
+
+        if (query.isEmpty()) {
+            item(key = "explore_feed") {
+                ExploreScreen(
+                    navController = navController,
+                    embedded = true,
+                )
+            }
         }
 
         items(viewState.suggestions, key = { "suggestion_$it" }) { query ->

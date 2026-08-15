@@ -19,7 +19,7 @@ if (localPropertiesFile.exists()) {
     localProperties.load(localPropertiesFile.inputStream())
 }
 
-val baseApplicationId = "com.metrolist.music"
+val baseApplicationId = "com.yang.ytmusic"
 val applicationIdOverride = System.getenv("METROLIST_APPLICATION_ID")?.takeIf { it.isNotBlank() }
 val appNameOverride = System.getenv("METROLIST_APP_NAME")?.takeIf { it.isNotBlank() }
 val debugKeystorePathOverride = System.getenv("METROLIST_DEBUG_KEYSTORE_PATH")?.takeIf { it.isNotBlank() }
@@ -35,6 +35,7 @@ plugins {
     alias(libs.plugins.kotlin.ksp)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kotlin.serialization)
+    id("com.google.gms.google-services")
 }
 
 abstract class GenerateProtoTask : DefaultTask() {
@@ -101,9 +102,9 @@ android {
         applicationId = applicationIdOverride ?: baseApplicationId
         minSdk = 26
         targetSdk = 36
-        versionCode = 150
-        versionName = "13.6.1"
-        resValue("string", "app_name", appNameOverride ?: "Metrolist")
+        versionCode = 151
+        versionName = "13.7.0"
+        resValue("string", "app_name", appNameOverride ?: "YT Music")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
@@ -186,12 +187,9 @@ android {
             )
         }
         debug {
-            if (applicationIdOverride == null) {
-                applicationIdSuffix = ".debug"
-            }
             isDebuggable = true
             if (appNameOverride == null) {
-                resValue("string", "app_name", "Metrolist Debug")
+                resValue("string", "app_name", "YT Music")
             }
             signingConfig =
                 if (workflowDebugKeystoreFile != null) {
@@ -358,6 +356,7 @@ dependencies {
     implementation(libs.materialKolor)
 
     implementation(libs.appcompat)
+    implementation(libs.splashscreen)
 
     implementation(libs.coil)
     implementation(libs.coil.network.okhttp)
@@ -409,6 +408,11 @@ dependencies {
     coreLibraryDesugaring(libs.desugaring)
 
     implementation(libs.timber)
+
+    implementation(platform("com.google.firebase:firebase-bom:33.16.0"))
+    implementation("com.google.firebase:firebase-config")
+    implementation("com.google.firebase:firebase-analytics")
+    implementation("androidx.work:work-runtime-ktx:2.10.1")
 
     testImplementation(libs.junit)
     testImplementation(libs.robolectric)

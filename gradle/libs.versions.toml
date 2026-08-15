@@ -9,6 +9,7 @@ compose = "1.11.4"
 lifecycle = "2.11.0"
 material3 = "1.5.0-alpha24"
 appcompat = "1.7.1"
+splashscreen = "1.0.1"
 media3 = "1.10.1"
 mediarouter = "1.8.1"
 castFramework = "22.3.1"
@@ -66,6 +67,7 @@ material3 = { module = "androidx.compose.material3:material3", version.ref = "ma
 materialKolor = { module = "com.materialkolor:material-kolor", version.ref = "materialKolor" }
 
 appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
+splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "splashscreen" }
 browser = { module = "androidx.browser:browser", version.ref = "browser" }
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
 androidx-test-core = { module = "androidx.test:core", version.ref = "androidxTestCore" }

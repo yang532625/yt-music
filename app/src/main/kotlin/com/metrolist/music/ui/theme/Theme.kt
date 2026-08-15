@@ -6,12 +6,9 @@
 package com.metrolist.music.ui.theme
 
 import android.graphics.Bitmap
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.Saver
@@ -19,14 +16,14 @@ import androidx.compose.runtime.saveable.SaverScope
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.platform.LocalContext
 import androidx.palette.graphics.Palette
 import com.materialkolor.PaletteStyle
 import com.materialkolor.dynamiccolor.ColorSpec
 import com.materialkolor.rememberDynamicColorScheme
 import com.materialkolor.score.Score
 
-val DefaultThemeColor = Color(0xFFED5564)
+/** YouTube Music red — fixed accent seed (not Material You wallpaper). */
+val DefaultThemeColor = Color(0xFFFF0000)
 
 @Composable
 fun MetrolistTheme(
@@ -35,38 +32,41 @@ fun MetrolistTheme(
     themeColor: Color = DefaultThemeColor,
     content: @Composable () -> Unit,
 ) {
-    val context = LocalContext.current
-    // Determine if system dynamic colors should be used (Android S+ and default theme color)
-    val useSystemDynamicColor = (themeColor == DefaultThemeColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+    // Always seed from themeColor (YTM red by default). Do not use system wallpaper dynamic colors.
+    val baseColorScheme = rememberDynamicColorScheme(
+        seedColor = themeColor,
+        isDark = darkTheme,
+        specVersion = ColorSpec.SpecVersion.SPEC_2025,
+        style = PaletteStyle.TonalSpot,
+    )
 
-    // Select the appropriate color scheme generation method
-    val baseColorScheme = if (useSystemDynamicColor) {
-        // Use standard Material 3 dynamic color functions for system wallpaper colors
-        if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-    } else {
-        // Use materialKolor only when a specific seed color is provided
-        rememberDynamicColorScheme(
-            seedColor = themeColor, // themeColor is guaranteed non-default here
-            isDark = darkTheme,
-            specVersion = ColorSpec.SpecVersion.SPEC_2025,
-            style = PaletteStyle.TonalSpot // Keep existing style
-        )
-    }
-
-    // Apply pureBlack modification if needed, similar to original logic
-    val colorScheme = remember(baseColorScheme, pureBlack, darkTheme) {
-        if (darkTheme && pureBlack) {
+    val colorScheme = remember(baseColorScheme, pureBlack, darkTheme, themeColor) {
+        val ytmRed = Color(0xFFFF0000)
+        val ytmMini = Color(0xFFFF0033)
+        val scheme = if (darkTheme && pureBlack) {
             baseColorScheme.pureBlack(true)
         } else {
             baseColorScheme
         }
+        if (themeColor == DefaultThemeColor) {
+            scheme.copy(
+                primary = ytmRed,
+                onPrimary = Color.White,
+                primaryContainer = Color(0xFF8B0000),
+                onPrimaryContainer = Color.White,
+                secondary = ytmMini,
+                tertiary = ytmRed,
+                inversePrimary = ytmMini,
+            )
+        } else {
+            scheme
+        }
     }
 
-    // Use standard MaterialTheme instead of MaterialExpressiveTheme
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = AppTypography, // Use the defined AppTypography
-        content = content
+        typography = AppTypography,
+        content = content,
     )
 }
 
@@ -99,7 +99,13 @@ fun Bitmap.extractGradientColors(): List<Color> {
 fun ColorScheme.pureBlack(apply: Boolean) =
     if (apply) copy(
         surface = Color.Black,
-        background = Color.Black
+        background = Color.Black,
+        surfaceContainer = Color.Black,
+        surfaceContainerLow = Color.Black,
+        surfaceContainerLowest = Color.Black,
+        surfaceContainerHigh = Color(0xFF121212),
+        surfaceContainerHighest = Color(0xFF1A1A1A),
+        surfaceVariant = Color(0xFF1A1A1A),
     ) else this
 
 val ColorSaver = object : Saver<Color, Int> {

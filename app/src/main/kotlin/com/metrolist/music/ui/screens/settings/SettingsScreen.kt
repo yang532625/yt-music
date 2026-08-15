@@ -259,7 +259,7 @@ fun SettingsScreen(
                                     )
                                 },
                                 showBadge = true,
-                                onClick = { uriHandler.openUri(downloadUrl) }
+                                onClick = { navController.navigate("settings/updater") }
                             )
                         )
                     }

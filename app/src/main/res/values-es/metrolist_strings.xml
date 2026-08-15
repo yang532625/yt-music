@@ -166,6 +166,13 @@
     <string name="update_available_title">Actualización disponible</string>
     <string name="update_channel_name">Actualizaciones de la app</string>
     <string name="update_channel_desc">Notificaciones sobre nuevas versiones de la aplicación</string>
+    <string name="private_update_channel">Releases de GitHub</string>
+    <string name="private_update_channel_desc">Las actualizaciones se publican en GitHub. Al instalar se conservan ajustes, sesión y biblioteca.</string>
+    <string name="install_update">Instalar actualización</string>
+    <string name="downloading_update">Descargando actualización…</string>
+    <string name="update_available_message">La versión %1$s está lista. Se conservarán tus ajustes y tu biblioteca.</string>
+    <string name="update_later">Más tarde</string>
+    <string name="allow_unknown_sources">Permite instalar actualizaciones de YT Music en ajustes del sistema y vuelve a pulsar Instalar.</string>
     <string name="integrations">Integraciones</string>
     <string name="username">Nombre de usuario</string>
     <string name="password">Contraseña</string>
@@ -178,7 +185,7 @@
     <string name="scrobble_delay_minutes">Retraso del scrobble (minutos)</string>
     <string name="swipe_song_to_remove">Deslizar la canción para quitarla de la lista de reproducción</string>
     <string name="last_fm_send_likes">Sincronizar «Me gusta» y «No me gusta»</string>
-    <string name="last_fm_send_likes_description">Marcar canciones como «Me gusta» o «No me gusta» en Last.fm cuando las marques así en Metrolist</string>
+    <string name="last_fm_send_likes_description">Marcar canciones como «Me gusta» o «No me gusta» en Last.fm cuando las marques así en YT Music</string>
     <string name="primary_color_style">Color primario</string>
     <string name="tertiary_color_style">Color terciario</string>
     <string name="auto_scroll">Re-sincronizar</string>
@@ -254,7 +261,7 @@
     <string name="wrapped_playlist_saved">Lista de reproducción guardada</string>
     <string name="casting_to">Transmitiendo a %s</string>
     <string name="progress_percent">Progreso %s%%</string>
-    <string name="listening_to_metrolist">Escuchando Metrolist</string>
+    <string name="listening_to_metrolist">Escuchando YT Music</string>
     <string name="open">Abrir</string>
     <string name="failed_to_create_image">No se pudo crear la imagen: %s</string>
     <string name="copied_title">Título copiado</string>
@@ -269,7 +276,7 @@
     <string name="karaoke">Karaoke</string>
     <string name="apple_music_style">Estilo Apple Music</string>
     <string name="wrapped_intro_title">METROLIST</string>
-    <string name="wrapped_logo_content_description">Logo de Metrolist</string>
+    <string name="wrapped_logo_content_description">Logo de YT Music</string>
     <string name="wrapped_year">2025</string>
     <string name="show_artist_description">Mostrar descripción del artista</string>
     <string name="show_artist_subscriber_count">Ver número de suscriptores</string>
@@ -298,7 +305,7 @@
     <string name="import_error_title">Error de importación</string>
     <string name="album_art">Portada del álbum</string>
     <string name="no_song_playing">Ninguna canción reproduciéndose</string>
-    <string name="tap_to_open">Toca para abrir Metrolist</string>
+    <string name="tap_to_open">Toca para abrir YT Music</string>
     <string name="previous">Anterior</string>
     <string name="play_pause">Reproducir/Pausar</string>
     <string name="next">Siguiente</string>
@@ -390,7 +397,7 @@
     <string name="crash_description">Ocurrió un error inesperado. Por favor comparte el informe de fallos para ayudarnos a solucionar el problema</string>
     <string name="crash_share_logs">Compartir registros</string>
     <string name="crash_share_title">Compartir informe de fallos</string>
-    <string name="crash_report_subject">Informe de fallos de Metrolist</string>
+    <string name="crash_report_subject">Informe de fallos de YT Music</string>
     <string name="crash_close">Cerrar</string>
     <string name="crash_no_log">No hay registro de fallos disponible</string>
     <string name="palette_dynamic">Dinámico</string>
@@ -420,7 +427,7 @@
     <string name="cd_system_mode">Modo del sistema</string>
     <string name="cd_palette_item">Paleta %1$s</string>
     <string name="not_playing">No hay canción en reproducción</string>
-    <string name="tap_to_play">Toca para abrir Metrolist</string>
+    <string name="tap_to_play">Toca para abrir YT Music</string>
     <string name="widget_music_player">Reproductor de música</string>
     <string name="widget_turntable">Tocadiscos</string>
     <string name="listen_together_choose_server">Elegir servidor</string>
@@ -487,7 +494,7 @@
     <string name="song_title_column">Columna de título de la canción</string>
     <string name="recently_converted">Convertidos recientemente</string>
     <string name="importing_csv">Importando CSV…</string>
-    <string name="play_on_app">Reproducir en Metrolist</string>
+    <string name="play_on_app">Reproducir en YT Music</string>
     <string name="listening">Escuchando…</string>
     <string name="continue_action">Continuar</string>
     <string name="enable">Habilitar</string>
@@ -532,7 +539,7 @@
     <string name="discord_buttons">Botones</string>
     <string name="discord_button_1">Botón 1</string>
     <string name="discord_button_2">Botón 2</string>
-    <string name="discord_information_warning">Metrolist utiliza las API públicas de OAuth2 y Gateway de Discord para compartir lo que estás escuchando. La autorización se realiza mediante una sesión local del navegador que se cierra automáticamente tras capturar el código; no se envía nada a servidores de terceros. Tu token se almacena en este dispositivo en preferencias cifradas y nunca se comparte. Metrolist se conecta directamente a wss://gateway.discord.gg para publicar tu actividad y solo solicita el alcance mínimo necesario (sdk.social_layer_presence).</string>
+    <string name="discord_information_warning">YT Music utiliza las API públicas de OAuth2 y Gateway de Discord para compartir lo que estás escuchando. La autorización se realiza mediante una sesión local del navegador que se cierra automáticamente tras capturar el código; no se envía nada a servidores de terceros. Tu token se almacena en este dispositivo en preferencias cifradas y nunca se comparte. YT Music se conecta directamente a wss://gateway.discord.gg para publicar tu actividad y solo solicita el alcance mínimo necesario (sdk.social_layer_presence).</string>
     <string name="discord_activity_type">Tipo de actividad</string>
     <string name="discord_activity_playing">Jugando</string>
     <string name="discord_activity_listening">Escuchando</string>
@@ -611,7 +618,7 @@
     <string name="like_what_i_do">¿Te gusta lo que hago?</string>
     <string name="buy_mo_a_coffee">¡Invítame un café!</string>
     <string name="community_and_info">Comunidad e información</string>
-    <string name="metrolist">METROLIST</string>
+    <string name="metrolist">YouTube Music</string>
     <string name="wanna_play_favorite_song">¿Quieres reproducir su canción favorita?</string>
     <string name="yeah">¡Sí!</string>
     <string name="stands_with_palestine">Este proyecto apoya a Palestina 🇵🇸</string>
@@ -811,7 +818,7 @@
     <string name="recognition_notification_processing">Identificando…</string>
     <string name="recognition_notification_no_match">Sin coincidencias</string>
     <string name="recognition_notification_failed">Reconocimiento fallido</string>
-    <string name="listen_on_metrolist">Escuchar en Metrolist</string>
+    <string name="listen_on_metrolist">Escuchar en YT Music</string>
     <string name="android_auto">Android Auto</string>
     <string name="android_auto_visible_sections">Secciones visibles</string>
     <string name="android_auto_reorder_hint">Toca una sección para habilitarla o deshabilitarla\nMantén presionado el control de arrastre para reordenar. La primera sección se mostrará por defecto</string>

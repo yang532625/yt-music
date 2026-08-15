@@ -434,7 +434,8 @@ fun AccountSettings(
                             }
                         },
                         onClick = {
-                            uriHandler.openUri(downloadUrl)
+                            onClose()
+                            navController.navigate("settings/updater")
                         }
                     )
                 }

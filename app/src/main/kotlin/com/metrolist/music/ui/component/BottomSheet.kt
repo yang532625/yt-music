@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
@@ -64,6 +65,7 @@ fun BottomSheet(
     onDismiss: (() -> Unit)? = null,
     collapsedContent: @Composable BoxScope.() -> Unit,
     isExpandable: Boolean = true,
+    alwaysShowContent: Boolean = false,
     content: @Composable BoxScope.() -> Unit,
 ) {
     val density = LocalDensity.current
@@ -130,13 +132,17 @@ fun BottomSheet(
             }
         }
 
-        // main content
-        if (!state.isCollapsed) {
+        // main content — always shown in split-view so Up Next peeks while collapsed
+        if (!state.isCollapsed || alwaysShowContent) {
             BoxWithConstraints(
                 modifier = Modifier
                     .fillMaxSize()
                     .graphicsLayer {
-                        alpha = ((state.progress - 0.15f) * 4).coerceIn(0f, 1f)
+                        alpha = if (alwaysShowContent) {
+                            1f
+                        } else {
+                            ((state.progress - 0.15f) * 4).coerceIn(0f, 1f)
+                        }
                     },
                 content = content
             )
@@ -155,7 +161,10 @@ fun BottomSheet(
                     )
                     .focusable(false)
                     .fillMaxWidth()
-                    .height(state.collapsedBound),
+                    .then(
+                        if (alwaysShowContent) Modifier.wrapContentHeight()
+                        else Modifier.height(state.collapsedBound)
+                    ),
                 content = collapsedContent,
             )
         }

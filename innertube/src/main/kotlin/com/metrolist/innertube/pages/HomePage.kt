@@ -51,6 +51,48 @@ data class HomePage(
         val items: List<YTItem>,
     ) {
         companion object {
+            fun fromSectionContent(content: SectionListRenderer.Content): Section? {
+                content.musicCarouselShelfRenderer?.let { return fromMusicCarouselShelfRenderer(it) }
+                content.musicShelfRenderer?.let { return fromMusicShelfRenderer(it) }
+                content.gridRenderer?.let { return fromGridRenderer(it) }
+                content.itemSectionRenderer?.contents?.forEach { nested ->
+                    nested.musicShelfRenderer?.let { return fromMusicShelfRenderer(it) }
+                    nested.gridRenderer?.let { return fromGridRenderer(it) }
+                }
+                return null
+            }
+
+            fun fromMusicShelfRenderer(renderer: com.metrolist.innertube.models.MusicShelfRenderer): Section? {
+                val title = renderer.title?.runs?.firstOrNull()?.text ?: return null
+                val items = mutableListOf<YTItem>()
+                renderer.contents.orEmpty().forEach { row ->
+                    row.musicResponsiveListItemRenderer?.let { fromMusicResponsiveListItemRenderer(it)?.let(items::add) }
+                    row.musicMultiRowListItemRenderer?.let { fromMusicMultiRowListItemRenderer(it)?.let(items::add) }
+                }
+                if (items.isEmpty()) return null
+                return Section(
+                    title = title,
+                    label = null,
+                    thumbnail = null,
+                    endpoint = renderer.bottomEndpoint?.browseEndpoint
+                        ?: renderer.moreContentButton?.buttonRenderer?.navigationEndpoint?.browseEndpoint,
+                    items = items,
+                )
+            }
+
+            fun fromGridRenderer(renderer: com.metrolist.innertube.models.GridRenderer): Section? {
+                val title = renderer.header?.gridHeaderRenderer?.title?.runs?.firstOrNull()?.text ?: return null
+                val items = renderer.items.mapNotNull { it.musicTwoRowItemRenderer }.mapNotNull { fromMusicTwoRowItemRenderer(it) }
+                if (items.isEmpty()) return null
+                return Section(
+                    title = title,
+                    label = null,
+                    thumbnail = null,
+                    endpoint = null,
+                    items = items,
+                )
+            }
+
             fun fromMusicCarouselShelfRenderer(renderer: MusicCarouselShelfRenderer): Section? {
                 val title = renderer.header?.musicCarouselShelfBasicHeaderRenderer?.title?.runs?.firstOrNull()?.text
                 Timber.d("HomePage section title: $title, contents: ${renderer.contents.size}")

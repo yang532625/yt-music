@@ -1570,13 +1570,11 @@ object YouTube {
                     ?.content
                     ?.sectionListRenderer
             Timber.d("home() sectionListRender contents size: ${sectionListRender?.contents?.size ?: 0}")
-            val carousels = sectionListRender?.contents?.mapNotNull { it.musicCarouselShelfRenderer } ?: emptyList()
-            Timber.d("home() carousels count: ${carousels.size}")
             val sections =
-                carousels
-                    .mapNotNull {
-                        HomePage.Section.fromMusicCarouselShelfRenderer(it)
-                    }.toMutableList()
+                sectionListRender?.contents
+                    ?.mapNotNull { HomePage.Section.fromSectionContent(it) }
+                    .orEmpty()
+                    .toMutableList()
             Timber.d("home() sections parsed: ${sections.size}")
             val chips =
                 sectionListRender
@@ -1602,10 +1600,8 @@ object YouTube {
                 response.continuationContents
                     ?.sectionListContinuation
                     ?.contents
-                    ?.mapNotNull { it.musicCarouselShelfRenderer }
-                    ?.mapNotNull {
-                        HomePage.Section.fromMusicCarouselShelfRenderer(it)
-                    }.orEmpty(),
+                    ?.mapNotNull { HomePage.Section.fromSectionContent(it) }
+                    .orEmpty(),
                 continuation,
             )
         }
@@ -1613,17 +1609,20 @@ object YouTube {
     suspend fun explore(): Result<ExplorePage> =
         runCatching {
             val response = innerTube.browse(WEB_REMIX, browseId = "FEmusic_explore").body<BrowseResponse>()
+            val contents =
+                response.contents
+                    ?.singleColumnBrowseResultsRenderer
+                    ?.tabs
+                    ?.firstOrNull()
+                    ?.tabRenderer
+                    ?.content
+                    ?.sectionListRenderer
+                    ?.contents
+                    .orEmpty()
             ExplorePage(
                 newReleaseAlbums =
-                    response.contents
-                        ?.singleColumnBrowseResultsRenderer
-                        ?.tabs
-                        ?.firstOrNull()
-                        ?.tabRenderer
-                        ?.content
-                        ?.sectionListRenderer
-                        ?.contents
-                        ?.find {
+                    contents
+                        .find {
                             it.musicCarouselShelfRenderer
                                 ?.header
                                 ?.musicCarouselShelfBasicHeaderRenderer
@@ -1639,15 +1638,8 @@ object YouTube {
                         ?.mapNotNull(NewReleaseAlbumPage::fromMusicTwoRowItemRenderer)
                         .orEmpty(),
                 moodAndGenres =
-                    response.contents
-                        ?.singleColumnBrowseResultsRenderer
-                        ?.tabs
-                        ?.firstOrNull()
-                        ?.tabRenderer
-                        ?.content
-                        ?.sectionListRenderer
-                        ?.contents
-                        ?.find {
+                    contents
+                        .find {
                             it.musicCarouselShelfRenderer
                                 ?.header
                                 ?.musicCarouselShelfBasicHeaderRenderer
@@ -1662,6 +1654,7 @@ object YouTube {
                         ?.mapNotNull { it.musicNavigationButtonRenderer }
                         ?.mapNotNull(MoodAndGenres.Companion::fromMusicNavigationButtonRenderer)
                         .orEmpty(),
+                sections = contents.mapNotNull { HomePage.Section.fromSectionContent(it) },
             )
         }
 
@@ -3234,7 +3227,7 @@ object YouTube {
 
     suspend fun related(endpoint: BrowseEndpoint): Result<RelatedPage> =
         runCatching {
-            val response = innerTube.browse(WEB_REMIX, endpoint.browseId).body<BrowseResponse>()
+            val response = innerTube.browse(WEB_REMIX, endpoint.browseId, endpoint.params).body<BrowseResponse>()
             val songs = mutableListOf<SongItem>()
             val albums = mutableListOf<AlbumItem>()
             val artists = mutableListOf<ArtistItem>()

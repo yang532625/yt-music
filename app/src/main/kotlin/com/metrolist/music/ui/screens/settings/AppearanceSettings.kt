@@ -132,7 +132,7 @@ fun AppearanceSettings(
     val (dynamicTheme, onDynamicThemeChange) =
         rememberPreference(
             DynamicThemeKey,
-            defaultValue = true,
+            defaultValue = false,
         )
     val (enableDynamicIcon, onEnableDynamicIconPrefChange) =
         rememberPreference(
@@ -170,7 +170,7 @@ fun AppearanceSettings(
     val (miniPlayerBackground, onMiniPlayerBackgroundChange) =
         rememberEnumPreference(
             MiniPlayerBackgroundStyleKey,
-            defaultValue = MiniPlayerBackgroundStyle.DEFAULT,
+            defaultValue = MiniPlayerBackgroundStyle.PURE_BLACK,
         )
 
     val availableMiniPlayerBackgroundStyles =
@@ -183,7 +183,7 @@ fun AppearanceSettings(
     val (useNewMiniPlayerDesign, onUseNewMiniPlayerDesignChange) =
         rememberPreference(
             UseNewMiniPlayerDesignKey,
-            defaultValue = true,
+            defaultValue = false,
         )
     val (hidePlayerThumbnail, onHidePlayerThumbnailChange) =
         rememberPreference(
@@ -209,7 +209,7 @@ fun AppearanceSettings(
     val (playerButtonsStyle, onPlayerButtonsStyleChange) =
         rememberEnumPreference(
             PlayerButtonsStyleKey,
-            defaultValue = PlayerButtonsStyle.DEFAULT,
+            defaultValue = PlayerButtonsStyle.PRIMARY,
         )
     val (lyricsPosition, onLyricsPositionChange) =
         rememberEnumPreference(
@@ -1080,7 +1080,7 @@ fun AppearanceSettings(
         val (pureBlackMiniPlayer, onPureBlackMiniPlayerChange) =
             rememberPreference(
                 PureBlackMiniPlayerKey,
-                defaultValue = false,
+                defaultValue = true,
             )
 
         Material3SettingsGroup(

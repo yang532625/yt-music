@@ -12,6 +12,9 @@ import com.metrolist.music.models.MediaMetadata
 interface Queue {
     val preloadItem: MediaMetadata?
 
+    val contextPlaylistId: String?
+        get() = null
+
     suspend fun getInitialStatus(): Status
 
     fun hasNextPage(): Boolean

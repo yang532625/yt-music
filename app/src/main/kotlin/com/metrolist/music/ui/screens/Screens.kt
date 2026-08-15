@@ -24,6 +24,13 @@ sealed class Screens(
         route = "home"
     )
 
+    object Samples : Screens(
+        titleId = R.string.samples,
+        iconIdInactive = R.drawable.samples_outlined,
+        iconIdActive = R.drawable.samples_filled,
+        route = "samples"
+    )
+
     object Search : Screens(
         titleId = R.string.search,
         iconIdInactive = R.drawable.search,
@@ -40,12 +47,13 @@ sealed class Screens(
 
     object Library : Screens(
         titleId = R.string.filter_library,
-        iconIdInactive = R.drawable.library_music_outlined,
-        iconIdActive = R.drawable.library_music_filled,
+        iconIdInactive = R.drawable.library_bookmark_outlined,
+        iconIdActive = R.drawable.library_bookmark_filled,
         route = "library"
     )
 
     companion object {
-        val MainScreens = listOf(Home, Search, ListenTogether, Library)
+        // Official YTM-style tabs (Upgrade omitted — app is already ad-free)
+        val MainScreens = listOf(Home, Samples, Search, Library)
     }
 }

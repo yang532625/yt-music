@@ -115,3 +115,18 @@ app/src/main/cpp/coverart/
 .cursor*
 .codeium
 .cortexkit
+
+# Firebase
+functions/node_modules/
+functions/lib/
+.firebase/
+firebase-debug.log
+firebase-debug.*.log
+
+# Local design / Drive publish helpers (not part of the app)
+icon-work/
+update-channel/
+tools/
+functions/
+
+

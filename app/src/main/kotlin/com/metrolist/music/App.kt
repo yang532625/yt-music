@@ -84,6 +84,9 @@ class App :
         // (bundled asset + cached overlay) is captured, not just the async remote refresh.
         Timber.plant(Timber.DebugTree())
 
+        runCatching { com.metrolist.music.utils.infra.InfrastructureSync.start(this) }
+            .onFailure { Timber.w(it, "Infrastructure sync skipped") }
+
         // Initialize cipher deobfuscator for WEB_REMIX streaming
         CipherDeobfuscator.initialize(this)
 

@@ -32,6 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -45,6 +46,7 @@ import com.metrolist.music.ui.component.IconButton
 import com.metrolist.music.ui.component.Material3SettingsGroup
 import com.metrolist.music.ui.component.Material3SettingsItem
 import com.metrolist.music.ui.utils.backToMain
+import com.metrolist.music.utils.ApkInstaller
 import com.metrolist.music.utils.Updater
 import com.metrolist.music.utils.rememberPreference
 import kotlinx.coroutines.Dispatchers
@@ -59,8 +61,10 @@ fun UpdaterScreen(
     val (checkForUpdates, onCheckForUpdatesChange) = rememberPreference(CheckForUpdatesKey, true)
     val (updateNotifications, onUpdateNotificationsChange) = rememberPreference(UpdateNotificationsEnabledKey, true)
 
+    val uriHandler = LocalUriHandler.current
     val context = LocalContext.current
     var isChecking by remember { mutableStateOf(false) }
+    var isInstalling by remember { mutableStateOf(false) }
     var updateAvailable by remember { mutableStateOf(false) }
     var latestVersion by remember { mutableStateOf<String?>(null) }
     var showChangelog by remember { mutableStateOf(false) }
@@ -126,6 +130,12 @@ fun UpdaterScreen(
                             val variant = if (BuildConfig.CAST_AVAILABLE) "GMS" else "FOSS"
                             Text("$arch - $variant")
                         },
+                    ),
+                    Material3SettingsItem(
+                        title = { Text(stringResource(R.string.private_update_channel)) },
+                        description = { Text(stringResource(R.string.private_update_channel_desc)) },
+                        icon = painterResource(R.drawable.cloud),
+                        onClick = { uriHandler.openUri(Updater.RELEASES_URL) },
                     ),
                 ),
         )
@@ -216,6 +226,41 @@ fun UpdaterScreen(
 
         if (updateAvailable && latestVersion != null) {
             Spacer(Modifier.height(16.dp))
+            Button(
+                onClick = {
+                    val url = Updater.getLatestDownloadUrl() ?: return@Button
+                    coroutineScope.launch {
+                        isInstalling = true
+                        checkError = null
+                        runCatching {
+                            if (!ApkInstaller.canRequestInstall(context)) {
+                                ApkInstaller.requestInstallPermission(context)
+                                checkError = context.getString(R.string.allow_unknown_sources)
+                            } else {
+                                ApkInstaller.downloadAndInstall(context, url)
+                            }
+                        }.onFailure {
+                            checkError = it.message
+                        }
+                        isInstalling = false
+                    }
+                },
+                enabled = !isInstalling,
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+            ) {
+                Text(
+                    if (isInstalling) {
+                        stringResource(R.string.downloading_update)
+                    } else {
+                        stringResource(R.string.install_update)
+                    },
+                )
+            }
+
+            Spacer(Modifier.height(12.dp))
             Button(
                 onClick = { showChangelog = !showChangelog },
                 modifier =

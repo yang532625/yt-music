@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<defaultsMap>
+    <entry>
+        <key>pip_enabled</key>
+        <value>true</value>
+    </entry>
+    <entry>
+        <key>background_enabled</key>
+        <value>true</value>
+    </entry>
+    <entry>
+        <key>min_app_version</key>
+        <value>13.6.1</value>
+    </entry>
+    <entry>
+        <key>innertube_config</key>
+        <value>{}</value>
+    </entry>
+</defaultsMap>

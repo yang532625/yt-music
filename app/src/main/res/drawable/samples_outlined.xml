@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Samples: two overlapping play triangles (YTM-like) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillAlpha="0.55"
+        android:pathData="M3,5 L3,19 L14,12 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M10,5 L10,19 L21,12 Z" />
+</vector>

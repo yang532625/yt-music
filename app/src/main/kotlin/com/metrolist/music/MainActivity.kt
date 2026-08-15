@@ -9,6 +9,7 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.app.ForegroundServiceStartNotAllowedException
 import android.app.PendingIntent
+import android.app.PictureInPictureParams
 import android.content.ComponentName
 import android.content.Intent
 import android.content.ServiceConnection
@@ -16,6 +17,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
+import android.util.Rational
 import android.view.View
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
@@ -27,12 +29,14 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.add
@@ -45,9 +49,11 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
@@ -61,6 +67,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.contentColorFor
@@ -93,12 +100,15 @@ import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastAny
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -190,6 +200,7 @@ import com.metrolist.music.ui.theme.MetrolistTheme
 import com.metrolist.music.ui.theme.extractThemeColor
 import com.metrolist.music.ui.utils.appBarScrollBehavior
 import com.metrolist.music.ui.utils.resetHeightOffset
+import com.metrolist.music.utils.ApkInstaller
 import com.metrolist.music.utils.SearchRoutes
 import com.metrolist.music.utils.SyncUtils
 import com.metrolist.music.utils.Updater
@@ -338,6 +349,24 @@ class MainActivity : ComponentActivity() {
         super.onStop()
     }
 
+    override fun onUserLeaveHint() {
+        super.onUserLeaveHint()
+        enterPipIfPlaying()
+    }
+
+    private fun enterPipIfPlaying() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
+        if (!com.metrolist.music.utils.infra.InfrastructureFlags.pipEnabled) return
+        if (playerConnection?.isEffectivelyPlaying?.value != true) return
+        runCatching {
+            enterPictureInPictureMode(
+                PictureInPictureParams.Builder()
+                    .setAspectRatio(Rational(16, 9))
+                    .build(),
+            )
+        }
+    }
+
     override fun onDestroy() {
         if (isFinishing) {
             listenTogetherManager.disconnect()
@@ -375,6 +404,9 @@ class MainActivity : ComponentActivity() {
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
+        val keepSplashOn = java.util.concurrent.atomic.AtomicBoolean(true)
+        val splashScreen = installSplashScreen()
+        splashScreen.setKeepOnScreenCondition { keepSplashOn.get() }
         super.onCreate(savedInstanceState)
         window.decorView.layoutDirection = View.LAYOUT_DIRECTION_LTR
         WindowCompat.setDecorFitsSystemWindows(window, false)
@@ -445,14 +477,65 @@ class MainActivity : ComponentActivity() {
         }
 
         setContent {
-            MetrolistApp(
-                latestVersionName = latestVersionName,
-                onLatestVersionNameChange = { latestVersionName = it },
-                playerConnection = playerConnectionSnapshot,
-                database = database,
-                downloadUtil = downloadUtil,
-                syncUtils = syncUtils,
+            var contentVisible by remember { mutableStateOf(false) }
+            var introDone by remember { mutableStateOf(false) }
+
+            LaunchedEffect(Unit) {
+                // Drop system splash once Compose is ready, then soft fade/scale in
+                keepSplashOn.set(false)
+                contentVisible = true
+            }
+
+            val contentAlpha by androidx.compose.animation.core.animateFloatAsState(
+                targetValue = if (contentVisible) 1f else 0f,
+                animationSpec = androidx.compose.animation.core.tween(
+                    durationMillis = 480,
+                    easing = androidx.compose.animation.core.FastOutSlowInEasing,
+                ),
+                label = "openAlpha",
             )
+            val contentScale by androidx.compose.animation.core.animateFloatAsState(
+                targetValue = if (contentVisible) 1f else 0.94f,
+                animationSpec = androidx.compose.animation.core.tween(
+                    durationMillis = 520,
+                    easing = androidx.compose.animation.core.FastOutSlowInEasing,
+                ),
+                label = "openScale",
+            )
+
+            LaunchedEffect(contentVisible) {
+                if (contentVisible) {
+                    kotlinx.coroutines.delay(520)
+                    introDone = true
+                }
+            }
+
+            Box(
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .background(Color.Black)
+                        .then(
+                            if (introDone) {
+                                Modifier
+                            } else {
+                                Modifier.graphicsLayer {
+                                    alpha = contentAlpha
+                                    scaleX = contentScale
+                                    scaleY = contentScale
+                                }
+                            },
+                        ),
+            ) {
+                MetrolistApp(
+                    latestVersionName = latestVersionName,
+                    onLatestVersionNameChange = { latestVersionName = it },
+                    playerConnection = playerConnectionSnapshot,
+                    database = database,
+                    downloadUtil = downloadUtil,
+                    syncUtils = syncUtils,
+                )
+            }
         }
     }
 
@@ -468,6 +551,9 @@ class MainActivity : ComponentActivity() {
         syncUtils: SyncUtils,
     ) {
         val checkForUpdates by rememberPreference(CheckForUpdatesKey, defaultValue = true)
+        var showUpdateDialog by remember { mutableStateOf(false) }
+        var isInstallingUpdate by remember { mutableStateOf(false) }
+        val updateScope = rememberCoroutineScope()
 
         if (BuildConfig.UPDATER_AVAILABLE) {
             LaunchedEffect(checkForUpdates) {
@@ -479,33 +565,36 @@ class MainActivity : ComponentActivity() {
 
                         Updater.checkForUpdate().onSuccess { (releaseInfo, hasUpdate) ->
                             if (releaseInfo != null) {
-                                onLatestVersionNameChange(releaseInfo.versionName)
+                                withContext(Dispatchers.Main) {
+                                    onLatestVersionNameChange(releaseInfo.versionName)
+                                    if (hasUpdate) showUpdateDialog = true
+                                }
                                 if (hasUpdate && notifEnabled) {
-                                    val downloadUrl = Updater.getDownloadUrlForCurrentVariant(releaseInfo)
-                                    if (downloadUrl != null) {
-                                        val intent = Intent(Intent.ACTION_VIEW, downloadUrl.toUri())
-
-                                        val flags =
-                                            PendingIntent.FLAG_UPDATE_CURRENT or
-                                                (PendingIntent.FLAG_IMMUTABLE)
-                                        val pending = PendingIntent.getActivity(this@MainActivity, 1001, intent, flags)
-
-                                        val notif =
-                                            NotificationCompat
-                                                .Builder(this@MainActivity, "updates")
-                                                .setSmallIcon(R.drawable.update)
-                                                .setContentTitle(getString(R.string.update_available_title))
-                                                .setContentText(releaseInfo.versionName)
-                                                .setContentIntent(pending)
-                                                .setAutoCancel(true)
-                                                .build()
-
-                                        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
-                                            ContextCompat.checkSelfPermission(this@MainActivity, Manifest.permission.POST_NOTIFICATIONS) ==
-                                            PackageManager.PERMISSION_GRANTED
-                                        ) {
-                                            NotificationManagerCompat.from(this@MainActivity).notify(1001, notif)
+                                    val intent =
+                                        Intent(this@MainActivity, MainActivity::class.java).apply {
+                                            flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
                                         }
+
+                                    val flags =
+                                        PendingIntent.FLAG_UPDATE_CURRENT or
+                                            (PendingIntent.FLAG_IMMUTABLE)
+                                    val pending = PendingIntent.getActivity(this@MainActivity, 1001, intent, flags)
+
+                                    val notif =
+                                        NotificationCompat
+                                            .Builder(this@MainActivity, "updates")
+                                            .setSmallIcon(R.drawable.update)
+                                            .setContentTitle(getString(R.string.update_available_title))
+                                            .setContentText(releaseInfo.versionName)
+                                            .setContentIntent(pending)
+                                            .setAutoCancel(true)
+                                            .build()
+
+                                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
+                                        ContextCompat.checkSelfPermission(this@MainActivity, Manifest.permission.POST_NOTIFICATIONS) ==
+                                        PackageManager.PERMISSION_GRANTED
+                                    ) {
+                                        NotificationManagerCompat.from(this@MainActivity).notify(1001, notif)
                                     }
                                 }
                             }
@@ -517,7 +606,53 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        val enableDynamicTheme by rememberPreference(DynamicThemeKey, defaultValue = true)
+        if (showUpdateDialog && latestVersionName != BuildConfig.VERSION_NAME) {
+            AlertDialog(
+                onDismissRequest = { if (!isInstallingUpdate) showUpdateDialog = false },
+                title = { Text(stringResource(R.string.update_available_title)) },
+                text = {
+                    Text(
+                        if (isInstallingUpdate) {
+                            stringResource(R.string.downloading_update)
+                        } else {
+                            stringResource(R.string.update_available_message, latestVersionName)
+                        },
+                    )
+                },
+                confirmButton = {
+                    TextButton(
+                        enabled = !isInstallingUpdate,
+                        onClick = {
+                            val url = Updater.getLatestDownloadUrl() ?: return@TextButton
+                            updateScope.launch {
+                                isInstallingUpdate = true
+                                runCatching {
+                                    if (!ApkInstaller.canRequestInstall(this@MainActivity)) {
+                                        ApkInstaller.requestInstallPermission(this@MainActivity)
+                                    } else {
+                                        ApkInstaller.downloadAndInstall(this@MainActivity, url)
+                                        showUpdateDialog = false
+                                    }
+                                }
+                                isInstallingUpdate = false
+                            }
+                        },
+                    ) {
+                        Text(stringResource(R.string.install_update))
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        enabled = !isInstallingUpdate,
+                        onClick = { showUpdateDialog = false },
+                    ) {
+                        Text(stringResource(R.string.update_later))
+                    }
+                },
+            )
+        }
+
+        val enableDynamicTheme by rememberPreference(DynamicThemeKey, defaultValue = false)
         val enableHighRefreshRate by rememberPreference(EnableHighRefreshRateKey, defaultValue = true)
 
         LaunchedEffect(enableHighRefreshRate) {
@@ -548,7 +683,7 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
+        val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.ON)
         val isSystemInDarkTheme = isSystemInDarkTheme()
         val useDarkTheme =
             remember(darkTheme, isSystemInDarkTheme) {
@@ -560,7 +695,7 @@ class MainActivity : ComponentActivity() {
         }
 
         val enableLandscapeScaling by rememberPreference(EnableLandscapeScalingKey, defaultValue = false)
-        val pureBlackEnabled by rememberPreference(PureBlackKey, defaultValue = false)
+        val pureBlackEnabled by rememberPreference(PureBlackKey, defaultValue = true)
         val pureBlack =
             remember(pureBlackEnabled, useDarkTheme) {
                 pureBlackEnabled && useDarkTheme
@@ -687,20 +822,16 @@ class MainActivity : ComponentActivity() {
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val (previousTab, setPreviousTab) = rememberSaveable { mutableStateOf("home") }
 
-                val (listenTogetherInTopBar) = rememberPreference(ListenTogetherInTopBarKey, defaultValue = true)
+                val (listenTogetherInTopBar) = rememberPreference(ListenTogetherInTopBarKey, defaultValue = false)
                 val navigationItems =
-                    remember(listenTogetherInTopBar) {
-                        if (listenTogetherInTopBar) {
-                            Screens.MainScreens.filter { it != Screens.ListenTogether }
-                        } else {
-                            Screens.MainScreens
-                        }
+                    remember {
+                        Screens.MainScreens
                     }
                 val routeIndexMap = remember(navigationItems) {
                     navigationItems.mapIndexed { i, s -> s.route to i }.toMap()
                 }
                 val (slimNav) = rememberPreference(SlimNavBarKey, defaultValue = false)
-                val (useNewMiniPlayerDesign) = rememberPreference(UseNewMiniPlayerDesignKey, defaultValue = true)
+                val (useNewMiniPlayerDesign) = rememberPreference(UseNewMiniPlayerDesignKey, defaultValue = false)
                 val (defaultOpenTabInt) = rememberPreference(DefaultOpenTabKey, defaultValue = NavigationTab.HOME.name)
                 val defaultOpenTab = remember(defaultOpenTabInt) {
                     try {
@@ -722,6 +853,7 @@ class MainActivity : ComponentActivity() {
                     remember {
                         listOf(
                             Screens.Home.route,
+                            Screens.Samples.route,
                             Screens.Library.route,
                             Screens.ListenTogether.route,
                             "settings",
@@ -961,13 +1093,19 @@ class MainActivity : ComponentActivity() {
                 val currentTitleRes =
                     remember(navBackStackEntry) {
                         when (navBackStackEntry?.destination?.route) {
-                            Screens.Home.route -> R.string.home
+                            Screens.Home.route -> R.string.music_wordmark
+                            Screens.Samples.route -> R.string.samples
                             Screens.Search.route -> R.string.search
                             Screens.Library.route -> R.string.filter_library
                             Screens.ListenTogether.route -> R.string.together
                             else -> null
                         }
                     }
+
+                val isHomeRoute =
+                    navBackStackEntry?.destination?.route == Screens.Home.route
+                val isLibraryRoute =
+                    navBackStackEntry?.destination?.route == Screens.Library.route
 
                 var showAccountDialog by remember { mutableStateOf(false) }
 
@@ -1007,13 +1145,41 @@ class MainActivity : ComponentActivity() {
                                 Row {
                                     TopAppBar(
                                         title = {
-                                            Text(
-                                                text = currentTitleRes?.let { stringResource(it) } ?: "",
-                                                style = MaterialTheme.typography.titleLarge,
-                                            )
+                                            if (isHomeRoute) {
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                ) {
+Icon(
+                                                        painter = painterResource(R.drawable.ytm_logo),
+                                                        contentDescription = null,
+                                                        tint = Color.Unspecified,
+                                                        modifier = Modifier.size(28.dp),
+                                                    )
+                                                    Text(
+                                                        text = stringResource(R.string.music_wordmark),
+                                                        style = MaterialTheme.typography.titleLarge.copy(
+                                                            fontWeight = FontWeight.Bold,
+                                                            fontSize = 22.sp,
+                                                        ),
+                                                        color = Color.White,
+                                                        modifier = Modifier.padding(start = 8.dp),
+                                                    )
+                                                }
+                                            } else if (isLibraryRoute) {
+                                                // Title lives in Library content (YTM 9.26 style)
+                                                Text(text = "")
+                                            } else {
+                                                Text(
+                                                    text = currentTitleRes?.let { stringResource(it) } ?: "",
+                                                    style = MaterialTheme.typography.headlineMedium.copy(
+                                                        fontWeight = FontWeight.Bold,
+                                                    ),
+                                                    color = Color.White,
+                                                )
+                                            }
                                         },
                                         actions = {
-                                            if (showHistoryButton) {
+                                            if (showHistoryButton && (isLibraryRoute || !isHomeRoute)) {
                                                 IconButton(onClick = { navController.navigate("history") }) {
                                                     Icon(
                                                         painter = painterResource(R.drawable.history),
@@ -1021,11 +1187,13 @@ class MainActivity : ComponentActivity() {
                                                     )
                                                 }
                                             }
-                                            IconButton(onClick = { navController.navigate("stats") }) {
-                                                Icon(
-                                                    painter = painterResource(R.drawable.stats),
-                                                    contentDescription = stringResource(R.string.stats),
-                                                )
+                                            if (!isHomeRoute && !isLibraryRoute) {
+                                                IconButton(onClick = { navController.navigate("stats") }) {
+                                                    Icon(
+                                                        painter = painterResource(R.drawable.stats),
+                                                        contentDescription = stringResource(R.string.stats),
+                                                    )
+                                                }
                                             }
                                             if (listenTogetherInTopBar) {
                                                 IconButton(onClick = { navController.navigate("listen_together_from_topbar") }) {
@@ -1047,7 +1215,7 @@ class MainActivity : ComponentActivity() {
                                                             contentDescription = stringResource(R.string.account),
                                                             modifier =
                                                                 Modifier
-                                                                    .size(24.dp)
+                                                                    .size(28.dp)
                                                                     .clip(CircleShape),
                                                         )
                                                     } else {
@@ -1063,11 +1231,11 @@ class MainActivity : ComponentActivity() {
                                         scrollBehavior = topAppBarScrollBehavior,
                                         colors =
                                             TopAppBarDefaults.topAppBarColors(
-                                                containerColor = if (pureBlack) Color.Black else MaterialTheme.colorScheme.surfaceContainer,
-                                                scrolledContainerColor = if (pureBlack) Color.Black else MaterialTheme.colorScheme.surfaceContainer,
-                                                titleContentColor = MaterialTheme.colorScheme.onSurface,
-                                                actionIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                                navigationIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                containerColor = Color.Black,
+                                                scrolledContainerColor = Color.Black,
+                                                titleContentColor = Color.White,
+                                                actionIconContentColor = Color.White,
+                                                navigationIconContentColor = Color.White,
                                             ),
                                         modifier =
                                             Modifier.windowInsetsPadding(
@@ -1332,7 +1500,6 @@ class MainActivity : ComponentActivity() {
                                             slideOutHorizontally { it / 8 } + fadeOut(tween(200))
                                         }
                                     },
-                                    modifier = Modifier.nestedScroll(topAppBarScrollBehavior.nestedScrollConnection),
                                 ) {
                                     navigationBuilder(
                                         navController = navController,

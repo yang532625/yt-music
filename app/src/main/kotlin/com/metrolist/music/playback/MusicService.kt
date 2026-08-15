@@ -3895,7 +3895,7 @@ class MusicService :
                     return@launch
                 }
                 YouTube
-                    .registerPlayback(null, playbackUrl)
+                    .registerPlayback(currentQueue.contextPlaylistId, playbackUrl)
                     .onFailure {
                         reportException(it)
                     }

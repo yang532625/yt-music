@@ -58,13 +58,21 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.metrolist.innertube.models.AlbumItem
+import com.metrolist.innertube.models.ArtistItem
+import com.metrolist.innertube.models.EpisodeItem
+import com.metrolist.innertube.models.PlaylistItem
+import com.metrolist.innertube.models.PodcastItem
 import com.metrolist.innertube.models.SongItem
 import com.metrolist.innertube.models.WatchEndpoint
 import com.metrolist.music.LocalPlayerAwareWindowInsets
 import com.metrolist.music.LocalPlayerConnection
 import com.metrolist.music.R
+import com.metrolist.music.constants.AutoRadioQueueKey
 import com.metrolist.music.constants.ListItemHeight
+import com.metrolist.music.extensions.toMediaItem
 import com.metrolist.music.models.toMediaMetadata
+import com.metrolist.music.playback.queues.ListQueue
 import com.metrolist.music.playback.queues.YouTubeQueue
 import com.metrolist.music.ui.component.LocalMenuState
 import com.metrolist.music.ui.component.NavigationTitle
@@ -74,8 +82,11 @@ import com.metrolist.music.ui.component.shimmer.GridItemPlaceHolder
 import com.metrolist.music.ui.component.shimmer.ShimmerHost
 import com.metrolist.music.ui.component.shimmer.TextPlaceholder
 import com.metrolist.music.ui.menu.YouTubeAlbumMenu
+import com.metrolist.music.ui.menu.YouTubeArtistMenu
+import com.metrolist.music.ui.menu.YouTubePlaylistMenu
 import com.metrolist.music.ui.menu.YouTubeSongMenu
 import com.metrolist.music.ui.utils.SnapLayoutInfoProvider
+import com.metrolist.music.utils.rememberPreference
 import com.metrolist.music.viewmodels.ChartsViewModel
 import com.metrolist.music.viewmodels.ExploreViewModel
 
@@ -83,6 +94,7 @@ import com.metrolist.music.viewmodels.ExploreViewModel
 @Composable
 fun ExploreScreen(
     navController: NavController,
+    embedded: Boolean = false,
     exploreViewModel: ExploreViewModel = hiltViewModel(),
     chartsViewModel: ChartsViewModel = hiltViewModel(),
 ) {
@@ -99,11 +111,11 @@ fun ExploreScreen(
     val coroutineScope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
 
+    val autoRadioQueue by rememberPreference(AutoRadioQueueKey, defaultValue = true)
     val backStackEntry by navController.currentBackStackEntryAsState()
-    val scrollToTop by backStackEntry
-        ?.savedStateHandle
-        ?.getStateFlow("scrollToTop", false)
-        ?.collectAsStateWithLifecycle() ?: return
+    val scrollToTopFallback = remember { kotlinx.coroutines.flow.MutableStateFlow(false) }
+    val scrollToTop by (backStackEntry?.savedStateHandle?.getStateFlow("scrollToTop", false)
+        ?: scrollToTopFallback).collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
         if (chartsPage == null) {
@@ -112,23 +124,25 @@ fun ExploreScreen(
     }
 
     LaunchedEffect(scrollToTop) {
-        if (scrollToTop) {
+        if (!embedded && scrollToTop) {
             scrollState.animateScrollTo(0)
             backStackEntry?.savedStateHandle?.set("scrollToTop", false)
         }
     }
 
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = if (embedded) Modifier.fillMaxWidth() else Modifier.fillMaxSize(),
     ) {
         Column(
-            modifier = Modifier.verticalScroll(scrollState),
+            modifier = if (embedded) Modifier.fillMaxWidth() else Modifier.verticalScroll(scrollState),
         ) {
-            Spacer(
-                Modifier.height(
-                    LocalPlayerAwareWindowInsets.current.asPaddingValues().calculateTopPadding(),
-                ),
-            )
+            if (!embedded) {
+                Spacer(
+                    Modifier.height(
+                        LocalPlayerAwareWindowInsets.current.asPaddingValues().calculateTopPadding(),
+                    ),
+                )
+            }
 
             if (isChartsLoading || chartsPage == null || explorePage == null) {
                 ShimmerHost {
@@ -456,11 +470,117 @@ fun ExploreScreen(
                 }
             }
 
-            Spacer(
-                Modifier.height(
-                    LocalPlayerAwareWindowInsets.current.asPaddingValues().calculateBottomPadding(),
-                ),
-            )
+            explorePage?.sections
+                ?.filter { section ->
+                    val title = section.title.lowercase()
+                    title != "new albums" &&
+                        !title.contains("mood") &&
+                        !title.contains("genre") &&
+                        section.items.isNotEmpty()
+                }
+                ?.forEach { section ->
+                    NavigationTitle(
+                        title = section.title,
+                        onClick = section.endpoint?.let { endpoint ->
+                            endpoint.browseId?.let { browseId ->
+                                {
+                                    navController.navigate(
+                                        "youtube_browse/$browseId?params=${endpoint.params.orEmpty()}",
+                                    )
+                                }
+                            }
+                        },
+                    )
+                    LazyRow(
+                        contentPadding =
+                            WindowInsets.systemBars
+                                .only(WindowInsetsSides.Horizontal)
+                                .asPaddingValues(),
+                    ) {
+                        items(
+                            items = section.items.distinctBy { it.id },
+                            key = { "explore_section_${section.title}_${it.id}" },
+                        ) { item ->
+                            YouTubeGridItem(
+                                item = item,
+                                isActive = item.id in listOf(mediaMetadata?.album?.id, mediaMetadata?.id),
+                                isPlaying = isPlaying,
+                                coroutineScope = coroutineScope,
+                                modifier =
+                                    Modifier.combinedClickable(
+                                        onClick = {
+                                            when (item) {
+                                                is SongItem -> {
+                                                    if (item.id == mediaMetadata?.id) {
+                                                        playerConnection.togglePlayPause()
+                                                    } else {
+                                                        playerConnection.playQueue(
+                                                            if (autoRadioQueue) {
+                                                                YouTubeQueue(
+                                                                    item.endpoint ?: WatchEndpoint(videoId = item.id),
+                                                                    item.toMediaMetadata(),
+                                                                )
+                                                            } else {
+                                                                ListQueue(
+                                                                    title = item.title,
+                                                                    items = listOf(item.toMediaItem()),
+                                                                )
+                                                            },
+                                                        )
+                                                    }
+                                                }
+                                                is AlbumItem -> navController.navigate("album/${item.id}")
+                                                is ArtistItem -> navController.navigate("artist/${item.id}")
+                                                is PlaylistItem -> navController.navigate("online_playlist/${item.id}")
+                                                is PodcastItem -> navController.navigate("online_podcast/${item.id}")
+                                                is EpisodeItem -> {
+                                                    if (item.id == mediaMetadata?.id) {
+                                                        playerConnection.togglePlayPause()
+                                                    } else {
+                                                        playerConnection.playQueue(
+                                                            YouTubeQueue.radio(item.toMediaMetadata()),
+                                                        )
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        onLongClick = {
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            menuState.show {
+                                                when (item) {
+                                                    is SongItem -> YouTubeSongMenu(song = item, onDismiss = menuState::dismiss)
+                                                    is AlbumItem -> YouTubeAlbumMenu(albumItem = item, onDismiss = menuState::dismiss)
+                                                    is ArtistItem -> YouTubeArtistMenu(artist = item, onDismiss = menuState::dismiss)
+                                                    is PlaylistItem -> YouTubePlaylistMenu(
+                                                        playlist = item,
+                                                        coroutineScope = coroutineScope,
+                                                        onDismiss = menuState::dismiss,
+                                                    )
+                                                    is PodcastItem -> YouTubePlaylistMenu(
+                                                        playlist = item.asPlaylistItem(),
+                                                        coroutineScope = coroutineScope,
+                                                        onDismiss = menuState::dismiss,
+                                                    )
+                                                    is EpisodeItem -> YouTubeSongMenu(
+                                                        song = item.asSongItem(),
+                                                        onDismiss = menuState::dismiss,
+                                                    )
+                                                }
+                                            }
+                                        },
+                                    ),
+                            )
+                        }
+                    }
+                }
+
+            if (!embedded) {
+                Spacer(
+                    Modifier.height(
+                        LocalPlayerAwareWindowInsets.current.asPaddingValues().calculateBottomPadding(),
+                    ),
+                )
+            }
         }
     }
 }

@@ -1,0 +1,26 @@
+{
+  "parameters": {
+    "pip_enabled": {
+      "defaultValue": { "value": "true" },
+      "valueType": "BOOLEAN",
+      "description": "Enter Picture-in-Picture when leaving the app during playback"
+    },
+    "background_enabled": {
+      "defaultValue": { "value": "true" },
+      "valueType": "BOOLEAN",
+      "description": "Allow foreground-service background playback"
+    },
+    "min_app_version": {
+      "defaultValue": { "value": "13.6.1" },
+      "valueType": "STRING",
+      "description": "Minimum app versionName; older builds should use the APK updater"
+    },
+    "innertube_config": {
+      "defaultValue": {
+        "value": "{\"schemaVersion\":1,\"preferredClientOrder\":[],\"apkUpdateRecommended\":false,\"clients\":[{\"clientName\":\"WEB_REMIX\",\"clientVersion\":\"1.20260114.03.00\",\"clientId\":\"67\",\"userAgent\":\"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/140.0\"},{\"clientName\":\"WEB\",\"clientVersion\":\"2.20260205.04.01\",\"clientId\":\"1\",\"userAgent\":\"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/140.0\"}]}"
+      },
+      "valueType": "STRING",
+      "description": "InnerTube client overlay JSON (Spark-safe; no Cloud Functions)"
+    }
+  }
+}

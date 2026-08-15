@@ -12,8 +12,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
+import androidx.compose.material3.NavigationRailItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
@@ -63,9 +65,18 @@ fun AppNavigationRail(
     pureBlack: Boolean = false,
     onSearchLongClick: (() -> Unit)? = null
 ) {
-    val containerColor = if (pureBlack) Color.Black else MaterialTheme.colorScheme.surfaceContainer
+    val containerColor = Color.Black
     val haptics = LocalHapticFeedback.current
     val viewConfiguration = LocalViewConfiguration.current
+    val inactiveColor = Color.White.copy(alpha = 0.55f)
+    val selectedColor = Color.White
+    val itemColors = NavigationRailItemDefaults.colors(
+        selectedIconColor = selectedColor,
+        selectedTextColor = selectedColor,
+        indicatorColor = Color.Transparent,
+        unselectedIconColor = inactiveColor,
+        unselectedTextColor = inactiveColor,
+    )
 
     NavigationRail(
         modifier = modifier,
@@ -120,6 +131,7 @@ fun AppNavigationRail(
                     // For search item, click is handled via InteractionSource
                 },
                 interactionSource = interactionSource,
+                colors = itemColors,
                 icon = {
                     Icon(
                         painter = painterResource(id = iconRes),
@@ -143,10 +155,19 @@ fun AppNavigationBar(
     slimNav: Boolean = false,
     onSearchLongClick: (() -> Unit)? = null
 ) {
-    val containerColor = if (pureBlack) Color.Black else MaterialTheme.colorScheme.surfaceContainer
-    val contentColor = if (pureBlack) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
+    val containerColor = Color.Black
+    val contentColor = Color.White
     val haptics = LocalHapticFeedback.current
     val viewConfiguration = LocalViewConfiguration.current
+    val inactiveColor = Color.White.copy(alpha = 0.55f)
+    val selectedColor = Color.White
+    val itemColors = NavigationBarItemDefaults.colors(
+        selectedIconColor = selectedColor,
+        selectedTextColor = selectedColor,
+        indicatorColor = Color.Transparent,
+        unselectedIconColor = inactiveColor,
+        unselectedTextColor = inactiveColor,
+    )
 
     NavigationBar(
         modifier = modifier,
@@ -200,6 +221,7 @@ fun AppNavigationBar(
                     // For search item, click is handled via InteractionSource
                 },
                 interactionSource = interactionSource,
+                colors = itemColors,
                 icon = {
                     Icon(
                         painter = painterResource(id = iconRes),

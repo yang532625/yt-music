@@ -8,6 +8,7 @@ package com.metrolist.music.ui.screens.library
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -18,6 +19,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -27,12 +29,19 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.ripple
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
 import androidx.compose.material3.pulltorefresh.pullToRefresh
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
@@ -98,7 +107,6 @@ import com.metrolist.music.ui.component.PlaylistGridItem
 import com.metrolist.music.ui.component.PlaylistListItem
 import com.metrolist.music.ui.component.SongGridItem
 import com.metrolist.music.ui.component.SongListItem
-import com.metrolist.music.ui.component.SortHeader
 import com.metrolist.music.ui.menu.AlbumMenu
 import com.metrolist.music.ui.menu.ArtistMenu
 import com.metrolist.music.ui.menu.PlaylistMenu
@@ -127,7 +135,7 @@ fun LibraryMixScreen(
     val isPlaying by playerConnection.isEffectivelyPlaying.collectAsStateWithLifecycle()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsStateWithLifecycle()
 
-    var viewType by rememberEnumPreference(AlbumViewTypeKey, LibraryViewType.GRID)
+    var viewType by rememberEnumPreference(AlbumViewTypeKey, LibraryViewType.LIST)
     val (sortType, onSortTypeChange) =
         rememberEnumPreference(
             MixSortTypeKey,
@@ -388,31 +396,101 @@ fun LibraryMixScreen(
                 viewModel.updateSearchQuery("")
             },
             keyboardController = keyboardController,
-            modifier = Modifier.padding(start = 16.dp),
+            modifier = Modifier.padding(horizontal = 4.dp),
         ) {
-            SortHeader(
-                sortType = sortType,
-                sortDescending = sortDescending,
-                onSortTypeChange = onSortTypeChange,
-                onSortDescendingChange = onSortDescendingChange,
-                sortTypeText = { sortType ->
-                    when (sortType) {
-                        MixSortType.CREATE_DATE -> R.string.sort_by_create_date
-                        MixSortType.LAST_UPDATED -> R.string.sort_by_last_updated
-                        MixSortType.NAME -> R.string.sort_by_name
+            // YTM 9.26: "Recent activity" label opens sort menu
+            var sortMenuExpanded by remember { mutableStateOf(false) }
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = ripple(bounded = false),
+                    ) {
+                        sortMenuExpanded = true
                     }
-                },
-            )
+                    .padding(start = 12.dp, end = 4.dp, top = 8.dp, bottom = 8.dp),
+            ) {
+                Text(
+                    text = stringResource(R.string.recent_activity),
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 16.sp,
+                    ),
+                    color = Color.White,
+                )
+                Icon(
+                    painter = painterResource(R.drawable.expand_more),
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier
+                        .padding(start = 2.dp)
+                        .size(22.dp),
+                )
+                DropdownMenu(
+                    expanded = sortMenuExpanded,
+                    onDismissRequest = { sortMenuExpanded = false },
+                    modifier = Modifier.widthIn(min = 172.dp),
+                ) {
+                    MixSortType.entries.forEach { type ->
+                        DropdownMenuItem(
+                            text = {
+                                Text(
+                                    text = stringResource(
+                                        when (type) {
+                                            MixSortType.CREATE_DATE -> R.string.sort_by_create_date
+                                            MixSortType.LAST_UPDATED -> R.string.sort_by_last_updated
+                                            MixSortType.NAME -> R.string.sort_by_name
+                                        },
+                                    ),
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Normal,
+                                )
+                            },
+                            trailingIcon = {
+                                Icon(
+                                    painter = painterResource(
+                                        if (sortType == type) {
+                                            R.drawable.radio_button_checked
+                                        } else {
+                                            R.drawable.radio_button_unchecked
+                                        },
+                                    ),
+                                    contentDescription = null,
+                                )
+                            },
+                            onClick = {
+                                onSortTypeChange(type)
+                                sortMenuExpanded = false
+                            },
+                        )
+                    }
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                text = stringResource(
+                                    if (sortDescending) R.string.sort_descending else R.string.sort_ascending,
+                                ),
+                                fontSize = 16.sp,
+                            )
+                        },
+                        onClick = {
+                            onSortDescendingChange(!sortDescending)
+                        },
+                    )
+                }
+            }
 
             Spacer(Modifier.weight(1f))
 
             IconButton(
                 onClick = { isSearchActive = true },
-                modifier = Modifier.padding(start = 8.dp).size(40.dp),
+                modifier = Modifier.size(40.dp),
             ) {
                 Icon(
                     painter = painterResource(R.drawable.search),
                     contentDescription = stringResource(R.string.search),
+                    tint = Color.White,
                 )
             }
 
@@ -420,14 +498,15 @@ fun LibraryMixScreen(
                 onClick = {
                     viewType = viewType.toggle()
                 },
-                modifier = Modifier.padding(end = 8.dp).size(40.dp),
+                modifier = Modifier
+                    .padding(end = 4.dp)
+                    .size(40.dp),
             ) {
                 Icon(
-                    painter =
-                    painterResource(
+                    painter = painterResource(
                         when (viewType) {
-                            LibraryViewType.LIST -> R.drawable.list
-                            LibraryViewType.GRID -> R.drawable.grid_view
+                            LibraryViewType.LIST -> R.drawable.grid_view
+                            LibraryViewType.GRID -> R.drawable.list
                         },
                     ),
                     contentDescription = stringResource(
@@ -436,6 +515,7 @@ fun LibraryMixScreen(
                             LibraryViewType.GRID -> R.string.switch_to_list_view
                         },
                     ),
+                    tint = Color.White,
                 )
             }
         }
@@ -1061,9 +1141,11 @@ fun LibraryMixScreen(
             }
         }
 
-        // Always visible + button (no scroll hiding)
-        FloatingActionButton(
+        // YTM-style white pill "New" FAB
+        ExtendedFloatingActionButton(
             onClick = { showCreatePlaylistDialog = true },
+            containerColor = Color.White,
+            contentColor = Color.Black,
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .windowInsetsPadding(
@@ -1074,7 +1156,12 @@ fun LibraryMixScreen(
         ) {
             Icon(
                 painter = painterResource(R.drawable.add),
-                contentDescription = stringResource(R.string.create_playlist),
+                contentDescription = null,
+            )
+            Spacer(modifier = Modifier.size(8.dp))
+            Text(
+                text = stringResource(R.string.fab_new),
+                fontWeight = FontWeight.SemiBold,
             )
         }
 

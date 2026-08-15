@@ -1,0 +1,67 @@
+{
+  "project_info": {
+    "project_number": "131117168217",
+    "project_id": "yt-music-yang",
+    "storage_bucket": "yt-music-yang.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:131117168217:android:5607def49e8d902b442348",
+        "android_client_info": {
+          "package_name": "com.metrolist.music"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBLvnWq9hDVVXakcLraWtSZ2T0AHC7THd0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:131117168217:android:c2cf3001dde59f1d442348",
+        "android_client_info": {
+          "package_name": "com.metrolist.music.debug"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBLvnWq9hDVVXakcLraWtSZ2T0AHC7THd0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:131117168217:android:99a1cbd51da76e99442348",
+        "android_client_info": {
+          "package_name": "com.yang.ytmusic"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBLvnWq9hDVVXakcLraWtSZ2T0AHC7THd0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

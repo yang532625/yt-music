@@ -17,6 +17,8 @@ class YouTubeQueue(
     private var endpoint: WatchEndpoint,
     override val preloadItem: MediaMetadata? = null,
 ) : Queue {
+    override val contextPlaylistId: String?
+        get() = endpoint.playlistId
     private var continuation: String? = null
     private var retryCount = 0
     private val maxRetries = 3

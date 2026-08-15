@@ -122,6 +122,7 @@ import coil3.toBitmap
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import com.metrolist.music.ui.theme.PlayerColorExtractor
+import com.metrolist.music.ui.component.CastButton
 import com.metrolist.music.ui.component.LocalMenuState
 import com.metrolist.music.ui.menu.AddToPlaylistDialog
 
@@ -148,7 +149,7 @@ fun MiniPlayer(
     modifier: Modifier = Modifier,
     onClick: () -> Unit = {},
 ) {
-    val useNewMiniPlayerDesign by rememberPreference(UseNewMiniPlayerDesignKey, true)
+    val useNewMiniPlayerDesign by rememberPreference(UseNewMiniPlayerDesignKey, false)
 
     // Create stable progress state - doesn't cause recomposition on position changes
     val progressState = remember { ProgressState(positionState, durationState) }
@@ -186,12 +187,12 @@ private fun NewMiniPlayer(
     // Theme settings - these rarely change
     val miniPlayerBackground by rememberEnumPreference(
         MiniPlayerBackgroundStyleKey,
-        defaultValue = MiniPlayerBackgroundStyle.DEFAULT,
+        defaultValue = MiniPlayerBackgroundStyle.PURE_BLACK,
     )
     val context = LocalContext.current
     var gradientColors by remember { mutableStateOf<List<Color>>(emptyList()) }
     val isSystemInDarkTheme = isSystemInDarkTheme()
-    val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
+    val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.ON)
     val useDarkTheme =
         remember(darkTheme, isSystemInDarkTheme) {
             if (darkTheme == DarkMode.AUTO) isSystemInDarkTheme else darkTheme == DarkMode.ON
@@ -708,7 +709,7 @@ private fun LegacyMiniPlayer(
     onClick: () -> Unit = {},
 ) {
     val playerConnection = LocalPlayerConnection.current ?: return
-    val pureBlack by rememberPreference(PureBlackMiniPlayerKey, defaultValue = false)
+    val pureBlack by rememberPreference(PureBlackMiniPlayerKey, defaultValue = true)
 
     val playbackState by playerConnection.playbackState.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
@@ -758,8 +759,8 @@ private fun LegacyMiniPlayer(
             (600 / (1f + kotlin.math.exp(-(-11.44748 * swipeSensitivity + 9.04945)))).roundToInt()
         }
 
-    val primaryColor = MaterialTheme.colorScheme.primary
-    val trackColor = MaterialTheme.colorScheme.surfaceVariant
+    val primaryColor = Color(0xFFFF0033)
+    val trackColor = Color.White.copy(alpha = 0.2f)
 
     val interactionSource = remember { MutableInteractionSource() }
 
@@ -769,14 +770,9 @@ private fun LegacyMiniPlayer(
                 .then(if (isTabletLandscape) Modifier.width(500.dp) else Modifier.fillMaxWidth())
                 .height(MiniPlayerHeight)
                 .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Horizontal))
-                .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
-                .background(
-                    if (pureBlack && isSystemInDarkTheme()) {
-                        Color.Black
-                    } else {
-                        MaterialTheme.colorScheme.surfaceContainer
-                    },
-                ).clickable(
+                .clip(RoundedCornerShape(0.dp))
+                .background(Color(0xFF212121))
+                .clickable(
                     interactionSource = interactionSource,
                     indication = LocalIndication.current,
                     onClick = onClick
@@ -871,6 +867,9 @@ private fun LegacyMiniPlayer(
                 }
             }
 
+            // Cast then Play (official YTM mini bar order)
+            CastButton(tintColor = Color.White)
+
             LegacyPlayPauseButton(
                 playbackState = playbackState,
                 isCasting = isCasting,
@@ -878,13 +877,6 @@ private fun LegacyMiniPlayer(
                 playerConnection = playerConnection,
                 listenTogetherManager = listenTogetherManager,
             )
-
-            IconButton(
-                enabled = canSkipNext && !isListenTogetherGuest,
-                onClick = if (isListenTogetherGuest) ({}) else ({ playerConnection.seekToNext() }),
-            ) {
-                Icon(painter = painterResource(R.drawable.skip_next), contentDescription = null)
-            }
         }
 
         // Swipe indicator
@@ -953,6 +945,7 @@ private fun LegacyPlayPauseButton(
                     },
                 ),
             contentDescription = null,
+            tint = Color.White,
         )
     }
 }
