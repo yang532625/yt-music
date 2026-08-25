@@ -86,6 +86,8 @@ class App :
 
         runCatching { com.metrolist.music.utils.infra.InfrastructureSync.start(this) }
             .onFailure { Timber.w(it, "Infrastructure sync skipped") }
+        runCatching { com.metrolist.music.utils.UpdateCheckScheduler.start(this) }
+            .onFailure { Timber.w(it, "Update check scheduler skipped") }
 
         // Initialize cipher deobfuscator for WEB_REMIX streaming
         CipherDeobfuscator.initialize(this)

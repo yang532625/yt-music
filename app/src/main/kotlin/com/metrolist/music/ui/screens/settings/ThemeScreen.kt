@@ -90,7 +90,7 @@ data class ThemePalette(
 
 val PaletteColors = listOf(
     ThemePalette(R.string.palette_dynamic, Color.Transparent), // Sentinel for System/Dynamic colors
-    ThemePalette(R.string.palette_crimson, Color(0xFFFF0000)), // YouTube Music red (matches DefaultThemeColor shift)
+    ThemePalette(R.string.palette_crimson, Color(0xFFFF0033)), // YouTube Music red (matches DefaultThemeColor)
     ThemePalette(R.string.palette_rose, Color(0xFFD81B60)),
     ThemePalette(R.string.palette_purple, Color(0xFF8E24AA)),
     ThemePalette(R.string.palette_deep_purple, Color(0xFF5E35B1)),

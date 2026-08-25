@@ -252,7 +252,7 @@
     <string name="wrapped_total_artists_subtitle">Unikalni artyści</string>
     <string name="wrapped_total_songs_title">Słuchałeś/aś</string>
     <string name="wrapped_total_songs_subtitle">Unikalnie piosenki</string>
-    <string name="wrapped_intro_title">METROLIST</string>
+    <string name="wrapped_intro_title">YOUTUBE MUSIC</string>
     <string name="wrapped_intro_subtitle">Czas sprawdzić, czego słuchałeś/aś</string>
     <string name="wrapped_intro_button">Zaczynamy!</string>
     <string name="wrapped_logo_content_description">Logo Metrolist</string>
@@ -671,7 +671,7 @@
     <string name="like_what_i_do">Podoba Ci się to co robię?</string>
     <string name="buy_mo_a_coffee">Kup mi kawę</string>
     <string name="community_and_info">Społeczność i informacje</string>
-    <string name="metrolist">METROLIST</string>
+    <string name="metrolist">YOUTUBE MUSIC</string>
     <string name="wanna_play_favorite_song">Chcesz zagrać ich ulubioną piosenkę?</string>
     <string name="yeah">Spoko</string>
     <string name="stands_with_palestine">Ten projekt wspiera Palestynę 🇵🇸</string>

@@ -37,7 +37,7 @@
     <string name="wrapped_top_album_title">당신의 최애 앨범은</string>
     <string name="wrapped_top_song_album_art_content_description">앨범 아트</string>
     <string name="wrapped_top_artist_title">올해 당신의 최애 아티스트는</string>
-    <string name="wrapped_intro_title">METROLIST</string>
+    <string name="wrapped_intro_title">YOUTUBE MUSIC</string>
     <string name="wrapped_year">2025</string>
     <string name="equalizer_header">이퀄라이저</string>
     <string name="no_profiles">이퀄라이저 프로필 없음</string>
@@ -305,7 +305,7 @@
     <string name="error_podcast_subscribe">팟캐스트를 구독하지 못했습니다</string>
     <string name="error_podcast_unsubscribe">팟캐스트 구독을 해제하지 못했습니다</string>
     <string name="view_channel">채널 보기</string>
-    <string name="metrolist">METROLIST</string>
+    <string name="metrolist">YOUTUBE MUSIC</string>
     <string name="start_radio_desc">이 항목을 기반으로 라디오 시작</string>
     <string name="crossfade_beta_title">베타 기능!</string>
     <string name="crossfade_beta_message">크로스페이드는 베타 기능으로 버그가 있을 수 있습니다. 문제가 발생하면 제보해 주십시오.\n\n참고: 기술적 한계로 오디오 오프로드가 비활성화됩니다</string>

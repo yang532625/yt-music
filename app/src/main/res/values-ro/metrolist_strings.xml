@@ -249,7 +249,7 @@
     <string name="wrapped_total_artists_subtitle">artiști unici!</string>
     <string name="wrapped_total_songs_title">Ai ascultat</string>
     <string name="wrapped_total_songs_subtitle">(de) melodii unice!</string>
-    <string name="wrapped_intro_title">METROLIST</string>
+    <string name="wrapped_intro_title">YOUTUBE MUSIC</string>
     <string name="wrapped_intro_subtitle">este timpul să vedem ce ai ascultat în tot acest an…</string>
     <string name="wrapped_intro_button">să mergem!</string>
     <string name="wrapped_logo_content_description">Logo-ul Metrolist</string>
@@ -620,7 +620,7 @@
     <string name="like_what_i_do">Îți place ceea ce fac?</string>
     <string name="buy_mo_a_coffee">Cumpără-mi o cafea!</string>
     <string name="community_and_info">Comunitate și informații</string>
-    <string name="metrolist">METROLIST</string>
+    <string name="metrolist">YOUTUBE MUSIC</string>
     <string name="wanna_play_favorite_song">Vrei să redai melodia lui/ei preferată?</string>
     <string name="yeah">Da!</string>
     <string name="stands_with_palestine">Acest proiect ține cu Palestina 🇵🇸</string>

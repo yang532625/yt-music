@@ -7,6 +7,7 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
@@ -53,6 +54,17 @@
             android:theme="@style/Theme.Metrolist"
             android:excludeFromRecents="true"
             android:process=":crash" />
+
+        <activity
+            android:name=".web.YtMusicWebActivity"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:resizeableActivity="true"
+            android:supportsPictureInPicture="true"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation|keyboardHidden|keyboard|uiMode"
+            android:theme="@style/Theme.Metrolist.Splash"
+            android:windowSoftInputMode="adjustResize"
+            android:excludeFromRecents="false" />
 
         <activity
             android:name=".MainActivity"
@@ -238,6 +250,12 @@
             android:launchMode="singleTask"
             android:noHistory="true"
             android:theme="@style/Theme.Metrolist.Transparent" />
+
+        <service
+            android:name=".web.YtMusicPlaybackService"
+            android:exported="false"
+            android:foregroundServiceType="mediaPlayback"
+            android:stopWithTask="false" />
 
         <service
             android:name=".playback.MusicService"

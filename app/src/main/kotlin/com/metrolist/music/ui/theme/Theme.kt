@@ -23,7 +23,7 @@ import com.materialkolor.rememberDynamicColorScheme
 import com.materialkolor.score.Score
 
 /** YouTube Music red — fixed accent seed (not Material You wallpaper). */
-val DefaultThemeColor = Color(0xFFFF0000)
+val DefaultThemeColor = Color(0xFFFF0033)
 
 @Composable
 fun MetrolistTheme(
@@ -41,10 +41,11 @@ fun MetrolistTheme(
     )
 
     val colorScheme = remember(baseColorScheme, pureBlack, darkTheme, themeColor) {
-        val ytmRed = Color(0xFFFF0000)
-        val ytmMini = Color(0xFFFF0033)
+        val ytmRed = Color(0xFFFF0033)
         val scheme = if (darkTheme && pureBlack) {
             baseColorScheme.pureBlack(true)
+        } else if (darkTheme) {
+            baseColorScheme.ytmDarkSurfaces()
         } else {
             baseColorScheme
         }
@@ -54,9 +55,9 @@ fun MetrolistTheme(
                 onPrimary = Color.White,
                 primaryContainer = Color(0xFF8B0000),
                 onPrimaryContainer = Color.White,
-                secondary = ytmMini,
+                secondary = ytmRed,
                 tertiary = ytmRed,
-                inversePrimary = ytmMini,
+                inversePrimary = ytmRed,
             )
         } else {
             scheme
@@ -104,9 +105,20 @@ fun ColorScheme.pureBlack(apply: Boolean) =
         surfaceContainerLow = Color.Black,
         surfaceContainerLowest = Color.Black,
         surfaceContainerHigh = Color(0xFF121212),
-        surfaceContainerHighest = Color(0xFF1A1A1A),
-        surfaceVariant = Color(0xFF1A1A1A),
+        surfaceContainerHighest = Color(0xFF282828),
+        surfaceVariant = Color(0xFF282828),
     ) else this
+
+fun ColorScheme.ytmDarkSurfaces() = copy(
+    surface = Color(0xFF030303),
+    background = Color(0xFF030303),
+    surfaceContainer = Color(0xFF030303),
+    surfaceContainerLow = Color(0xFF030303),
+    surfaceContainerLowest = Color.Black,
+    surfaceContainerHigh = Color(0xFF121212),
+    surfaceContainerHighest = Color(0xFF282828),
+    surfaceVariant = Color(0xFF282828),
+)
 
 val ColorSaver = object : Saver<Color, Int> {
     override fun restore(value: Int): Color = Color(value)

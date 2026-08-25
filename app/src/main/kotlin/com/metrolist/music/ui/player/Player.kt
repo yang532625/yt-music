@@ -221,7 +221,7 @@ fun BottomSheetPlayer(
     val (useNewPlayerDesign, onUseNewPlayerDesignChange) =
         rememberPreference(
             UseNewPlayerDesignKey,
-            defaultValue = true,
+            defaultValue = false,
         )
     val (hidePlayerThumbnail, onHidePlayerThumbnailChange) = rememberPreference(HidePlayerThumbnailKey, false)
     val (hideStatusBarOnFullscreen) = rememberPreference(HideStatusBarOnFullscreenKey, false)
@@ -237,11 +237,11 @@ fun BottomSheetPlayer(
 
     val playerBackground by rememberEnumPreference(
         key = PlayerBackgroundStyleKey,
-        defaultValue = PlayerBackgroundStyle.DEFAULT,
+        defaultValue = PlayerBackgroundStyle.BLUR,
     )
     val playerButtonsStyle by rememberEnumPreference(
         key = PlayerButtonsStyleKey,
-        defaultValue = PlayerButtonsStyle.PRIMARY,
+        defaultValue = PlayerButtonsStyle.DEFAULT,
     )
 
     val isSystemInDarkTheme = isSystemInDarkTheme()
@@ -1733,12 +1733,7 @@ fun BottomSheetPlayer(
                         ) {
                             Box(modifier = Modifier.weight(1f)) {
                                 ResizableIconButton(
-                                    icon =
-                                        when (repeatMode) {
-                                            Player.REPEAT_MODE_OFF, Player.REPEAT_MODE_ALL -> R.drawable.repeat
-                                            Player.REPEAT_MODE_ONE -> R.drawable.repeat_one
-                                            else -> throw IllegalStateException()
-                                        },
+                                    icon = if (playerConnection.player.shuffleModeEnabled) R.drawable.shuffle_on else R.drawable.shuffle,
                                     color = TextBackgroundColor,
                                     modifier =
                                         Modifier
@@ -1748,7 +1743,7 @@ fun BottomSheetPlayer(
                                             .alpha(if (isListenTogetherGuest) 0.5f else 1f),
                                     enabled = !isListenTogetherGuest,
                                     onClick = {
-                                        playerConnection.player.toggleRepeatMode()
+                                        playerConnection.player.shuffleModeEnabled = !playerConnection.player.shuffleModeEnabled
                                     },
                                 )
                             }
@@ -1836,20 +1831,49 @@ fun BottomSheetPlayer(
                             }
 
                             Box(modifier = Modifier.weight(1f)) {
-                                // For episodes, show saved state (inLibrary); for songs, show liked state
-                                val isEpisode = currentSong?.song?.isEpisode == true
-                                val isFavorite = if (isEpisode) currentSong?.song?.inLibrary != null else currentSong?.song?.liked == true
                                 ResizableIconButton(
-                                    icon = if (isFavorite) R.drawable.favorite else R.drawable.favorite_border,
-                                    color = if (isFavorite) MaterialTheme.colorScheme.error else TextBackgroundColor,
+                                    icon =
+                                        when (repeatMode) {
+                                            Player.REPEAT_MODE_OFF, Player.REPEAT_MODE_ALL -> R.drawable.repeat
+                                            Player.REPEAT_MODE_ONE -> R.drawable.repeat_one
+                                            else -> throw IllegalStateException()
+                                        },
+                                    color = TextBackgroundColor,
                                     modifier =
                                         Modifier
                                             .size(32.dp)
                                             .padding(4.dp)
-                                            .align(Alignment.Center),
-                                    onClick = playerConnection::toggleLike,
+                                            .align(Alignment.Center)
+                                            .alpha(if (isListenTogetherGuest) 0.5f else 1f),
+                                    enabled = !isListenTogetherGuest,
+                                    onClick = {
+                                        playerConnection.player.toggleRepeatMode()
+                                    },
                                 )
                             }
+                        }
+
+                        // Second row: Like (matches YTM)
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center,
+                            modifier =
+                                Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = PlayerHorizontalPadding + 8.dp),
+                        ) {
+                            val isEpisode = currentSong?.song?.isEpisode == true
+                            val isFavorite = if (isEpisode) currentSong?.song?.inLibrary != null else currentSong?.song?.liked == true
+
+                            ResizableIconButton(
+                                icon = if (isFavorite) R.drawable.favorite else R.drawable.favorite_border,
+                                color = if (isFavorite) MaterialTheme.colorScheme.error else TextBackgroundColor,
+                                modifier =
+                                    Modifier
+                                        .size(32.dp)
+                                        .padding(4.dp),
+                                onClick = playerConnection::toggleLike,
+                            )
                         }
                     }
                 }

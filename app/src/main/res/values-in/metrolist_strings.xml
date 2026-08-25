@@ -224,7 +224,7 @@
     <string name="wrapped_total_artists_subtitle">artis unik!</string>
     <string name="wrapped_total_songs_title">Anda telah mendengarkan</string>
     <string name="wrapped_total_songs_subtitle">lagu unik!</string>
-    <string name="wrapped_intro_title">METROLIST</string>
+    <string name="wrapped_intro_title">YOUTUBE MUSIC</string>
     <string name="wrapped_intro_subtitle">saatnya melihat apa yang telah Anda dengarkan sepanjang tahun ini…</string>
     <string name="wrapped_intro_button">ayo mulai!</string>
     <string name="wrapped_logo_content_description">Logo Metrolist</string>
@@ -636,7 +636,7 @@
     <string name="like_what_i_do">Suka dengan yang saya lakukan?</string>
     <string name="buy_mo_a_coffee">Belikan saya kopi!</string>
     <string name="community_and_info">Komunitas &amp; Info</string>
-    <string name="metrolist">METROLIST</string>
+    <string name="metrolist">YOUTUBE MUSIC</string>
     <string name="wanna_play_favorite_song">Ingin memutar lagu favorit mereka?</string>
     <string name="yeah">Tentu!</string>
     <string name="stands_with_palestine">Proyek ini berpihak pada Palestina 🇵🇸</string>

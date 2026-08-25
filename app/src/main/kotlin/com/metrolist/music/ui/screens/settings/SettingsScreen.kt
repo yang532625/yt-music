@@ -214,6 +214,13 @@ fun SettingsScreen(
                         )
                     )
                 }
+                add(
+                    Material3SettingsItem(
+                        icon = painterResource(R.drawable.bug_report),
+                        title = { Text(stringResource(R.string.feedback_title)) },
+                        onClick = { navController.navigate("settings/feedback") },
+                    ),
+                )
                 if (BuildConfig.UPDATER_AVAILABLE) {
                     add(
                         Material3SettingsItem(

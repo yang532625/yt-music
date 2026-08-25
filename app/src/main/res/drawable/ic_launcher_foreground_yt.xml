@@ -4,7 +4,15 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
+    <!-- Red disc sits on the white adaptive background. -->
+    <path
+        android:fillColor="#FF0033"
+        android:pathData="M54,54m-31,0a31,31 0,1,1,62,0a31,31 0,1,1,-62,0" />
     <path
         android:fillColor="#FFFFFFFF"
-        android:pathData="M47.5,39.5 L47.5,68.5 L73,54 Z" />
+        android:fillType="evenOdd"
+        android:pathData="M54,54m-18.6,0a18.6,18.6 0,1,1,37.2,0a18.6,18.6 0,1,1,-37.2,0M54,54m-16.1,0a16.1,16.1 0,1,1,32.2,0a16.1,16.1 0,1,1,-32.2,0" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M46.4,43.6 L46.4,64.4 L66.2,54 Z" />
 </vector>

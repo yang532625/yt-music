@@ -245,7 +245,7 @@
     <string name="wrapped_total_artists_title">Du hast dir angehört</string>
     <string name="wrapped_total_songs_title">Du hast dir angehört</string>
     <string name="wrapped_total_songs_subtitle">einzigartige Lieder!</string>
-    <string name="wrapped_intro_title">METROLIST</string>
+    <string name="wrapped_intro_title">YOUTUBE MUSIC</string>
     <string name="wrapped_intro_subtitle">Es ist an der Zeit, mal zu schauen, was du das ganze Jahr über gehört hast…</string>
     <string name="wrapped_intro_button">Auf geht\'s!</string>
     <string name="wrapped_ready_title">Dein Wrapped ist bereit!</string>
@@ -613,7 +613,7 @@
     <string name="app_version_info">%1$s • %2$s</string>
     <string name="like_what_i_do">Gefällt dir meine Arbeit?</string>
     <string name="community_and_info">Community &amp; Info</string>
-    <string name="metrolist">METROLIST</string>
+    <string name="metrolist">YOUTUBE MUSIC</string>
     <string name="wanna_play_favorite_song">Möchten Sie ihr Lieblingslied spielen?</string>
     <string name="yeah">Ja!</string>
     <string name="stands_with_palestine">Dieses Projekt steht hinter Palästina 🇵🇸</string>

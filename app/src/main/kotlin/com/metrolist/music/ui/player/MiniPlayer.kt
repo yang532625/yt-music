@@ -93,6 +93,7 @@ import com.metrolist.music.constants.PureBlackMiniPlayerKey
 import com.metrolist.music.constants.SwipeSensitivityKey
 import com.metrolist.music.constants.SwipeThumbnailKey
 import com.metrolist.music.constants.ThumbnailCornerRadius
+import com.metrolist.music.constants.MiniPlayerThumbnailCornerRadius
 import com.metrolist.music.constants.UseNewMiniPlayerDesignKey
 import com.metrolist.music.db.entities.ArtistEntity
 import com.metrolist.music.listentogether.ListenTogetherManager
@@ -467,47 +468,6 @@ private fun NewMiniPlayer(
                         modifier = Modifier.size(20.dp),
                     )
                     Spacer(modifier = Modifier.width(12.dp))
-                }
-
-// Subscribe button - isolated composable
-                mediaMetadata?.artists?.firstOrNull()?.id?.let { artistId ->
-                    SubscribeButton(
-                        artistId = artistId,
-                        metadata = mediaMetadata!!,
-                        primaryColor = primaryColor,
-                        outlineColor = outlineColor,
-                        onSurfaceColor = onSurfaceColor,
-                    )
-                }
-
-                Spacer(modifier = Modifier.width(8.dp))
-
-// Add to playlist button - isolated composable
-                mediaMetadata?.let { metadata ->
-                    AddToPlaylistButton(
-                        onClick = {
-                            menuState.show {
-                                AddToPlaylistDialog(
-                                    isVisible = true,
-                                    onGetSong = { listOf(metadata.id) },
-                                    onDismiss = menuState::dismiss,
-                                )
-                            }
-                        },
-                        outlineColor = outlineColor,
-                        onSurfaceColor = onSurfaceColor,
-                    )
-                }
-
-                Spacer(modifier = Modifier.width(8.dp))
-
-// Favorite button - isolated composable
-                mediaMetadata?.let { FavoriteButton(
-                    songId = it.id,
-                    errorColor = errorColor,
-                    outlineColor = outlineColor,
-                    onSurfaceColor = onSurfaceColor,
-                )
                 }
             }
         }
@@ -968,7 +928,7 @@ private fun LegacyMiniMediaInfo(
                 Modifier
                     .padding(6.dp)
                     .size(48.dp)
-                    .clip(RoundedCornerShape(ThumbnailCornerRadius)),
+                    .clip(RoundedCornerShape(MiniPlayerThumbnailCornerRadius)),
         ) {
             Box(
                 modifier =
@@ -988,7 +948,7 @@ private fun LegacyMiniMediaInfo(
                 modifier =
                     Modifier
                         .fillMaxSize()
-                        .clip(RoundedCornerShape(ThumbnailCornerRadius)),
+                        .clip(RoundedCornerShape(MiniPlayerThumbnailCornerRadius)),
             )
 
             androidx.compose.animation.AnimatedVisibility(visible = error != null, enter = fadeIn(), exit = fadeOut()) {
@@ -997,7 +957,7 @@ private fun LegacyMiniMediaInfo(
                         .fillMaxSize()
                         .background(
                             color = if (pureBlack) Color.Black else Color.Black.copy(alpha = 0.6f),
-                            shape = RoundedCornerShape(ThumbnailCornerRadius),
+                            shape = RoundedCornerShape(MiniPlayerThumbnailCornerRadius),
                         ),
                 ) {
                     Icon(

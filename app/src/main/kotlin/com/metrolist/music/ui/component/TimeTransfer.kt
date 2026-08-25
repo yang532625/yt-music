@@ -9,6 +9,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -48,7 +49,7 @@ fun TimeTransfer(
                 text = stringResource(R.string.time_transfer_warning),
                 modifier = Modifier.fillMaxWidth(),
                 textAlign = TextAlign.Center,
-                color = androidx.compose.ui.graphics.Color.Red,
+                color = Color(0xFFFF0033),
             )
 
             Spacer(modifier = Modifier.height(12.dp))

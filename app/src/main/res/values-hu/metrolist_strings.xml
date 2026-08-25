@@ -347,7 +347,7 @@
     <string name="wrapped_total_artists_subtitle">egyedi előadók!</string>
     <string name="wrapped_total_songs_title">Ezeket hallgatta</string>
     <string name="wrapped_total_songs_subtitle">egyedi dalok!</string>
-    <string name="wrapped_intro_title">METROLIST</string>
+    <string name="wrapped_intro_title">YOUTUBE MUSIC</string>
     <string name="wrapped_intro_subtitle">itt az ideje áttekinteni, mit hallgatott az év során…</string>
     <string name="wrapped_intro_button">gyerünk!</string>
     <string name="wrapped_logo_content_description">Metrolist Logó</string>
@@ -519,7 +519,7 @@
     <string name="like_what_i_do">Tetszik, amit csinálok?</string>
     <string name="buy_mo_a_coffee">Hívjon meg egy kávéra!</string>
     <string name="community_and_info">Közösség &amp; információ</string>
-    <string name="metrolist">METROLIST</string>
+    <string name="metrolist">YOUTUBE MUSIC</string>
     <string name="wanna_play_favorite_song">Játszuk a kedvenc dalukat?</string>
     <string name="yeah">Naná!</string>
     <string name="stands_with_palestine">Ez a projekt Palesztina mellett áll 🇵🇸</string>

@@ -53,7 +53,7 @@ sealed class Screens(
     )
 
     companion object {
-        // Official YTM-style tabs (Upgrade omitted — app is already ad-free)
+        // Official YTM Premium: Home / Samples / Search / Library (no Upgrade tab)
         val MainScreens = listOf(Home, Samples, Search, Library)
     }
 }

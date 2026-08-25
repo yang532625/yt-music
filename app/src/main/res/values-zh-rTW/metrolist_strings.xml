@@ -347,7 +347,7 @@
     <string name="stands_with_palestine">這個計畫支持巴勒斯坦🇵🇸</string>
     <string name="yeah">是的！</string>
     <string name="wanna_play_favorite_song">想播放他們最喜歡的歌曲嗎？</string>
-    <string name="metrolist">METROLIST</string>
+    <string name="metrolist">YOUTUBE MUSIC</string>
     <string name="community_and_info">社區與資訊</string>
     <string name="buy_mo_a_coffee">請我喝杯咖啡吧！</string>
     <string name="like_what_i_do">喜歡我做的事嗎？</string>
@@ -545,7 +545,7 @@
     <string name="wrapped_total_artists_subtitle">獨特的藝術家!</string>
     <string name="wrapped_total_songs_title">你聽了</string>
     <string name="wrapped_total_songs_subtitle">獨特的歌曲!</string>
-    <string name="wrapped_intro_title">METROLIST</string>
+    <string name="wrapped_intro_title">YOUTUBE MUSIC</string>
     <string name="wrapped_intro_subtitle">是時候看看你這一整年都在聽些什麼了…</string>
     <string name="wrapped_intro_button">我們開始吧！</string>
     <string name="wrapped_logo_content_description">Metrolist 標誌</string>

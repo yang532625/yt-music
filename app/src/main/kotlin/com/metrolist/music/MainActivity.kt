@@ -203,6 +203,7 @@ import com.metrolist.music.ui.utils.resetHeightOffset
 import com.metrolist.music.utils.ApkInstaller
 import com.metrolist.music.utils.SearchRoutes
 import com.metrolist.music.utils.SyncUtils
+import com.metrolist.music.utils.UpdateCoordinator
 import com.metrolist.music.utils.Updater
 import com.metrolist.music.utils.dataStore
 import com.metrolist.music.utils.safeDataStoreEdit
@@ -559,42 +560,17 @@ class MainActivity : ComponentActivity() {
             LaunchedEffect(checkForUpdates) {
                 if (checkForUpdates) {
                     withContext(Dispatchers.IO) {
-                        val updatesEnabled = dataStore.get(CheckForUpdatesKey, true)
-                        val notifEnabled = dataStore.get(UpdateNotificationsEnabledKey, true)
-                        if (!updatesEnabled) return@withContext
-
-                        Updater.checkForUpdate().onSuccess { (releaseInfo, hasUpdate) ->
+                        UpdateCoordinator.checkForUpdates(
+                            context = this@MainActivity,
+                            notifyIfAvailable = true,
+                        ).onSuccess { (releaseInfo, hasUpdate) ->
                             if (releaseInfo != null) {
                                 withContext(Dispatchers.Main) {
                                     onLatestVersionNameChange(releaseInfo.versionName)
-                                    if (hasUpdate) showUpdateDialog = true
-                                }
-                                if (hasUpdate && notifEnabled) {
-                                    val intent =
-                                        Intent(this@MainActivity, MainActivity::class.java).apply {
-                                            flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
-                                        }
-
-                                    val flags =
-                                        PendingIntent.FLAG_UPDATE_CURRENT or
-                                            (PendingIntent.FLAG_IMMUTABLE)
-                                    val pending = PendingIntent.getActivity(this@MainActivity, 1001, intent, flags)
-
-                                    val notif =
-                                        NotificationCompat
-                                            .Builder(this@MainActivity, "updates")
-                                            .setSmallIcon(R.drawable.update)
-                                            .setContentTitle(getString(R.string.update_available_title))
-                                            .setContentText(releaseInfo.versionName)
-                                            .setContentIntent(pending)
-                                            .setAutoCancel(true)
-                                            .build()
-
-                                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
-                                        ContextCompat.checkSelfPermission(this@MainActivity, Manifest.permission.POST_NOTIFICATIONS) ==
-                                        PackageManager.PERMISSION_GRANTED
-                                    ) {
-                                        NotificationManagerCompat.from(this@MainActivity).notify(1001, notif)
+                                    val fromNotification =
+                                        intent?.getBooleanExtra(UpdateCoordinator.EXTRA_SHOW_UPDATE_DIALOG, false) == true
+                                    if (hasUpdate || fromNotification) {
+                                        showUpdateDialog = true
                                     }
                                 }
                             }
@@ -854,6 +830,7 @@ class MainActivity : ComponentActivity() {
                         listOf(
                             Screens.Home.route,
                             Screens.Samples.route,
+                            Screens.Search.route,
                             Screens.Library.route,
                             Screens.ListenTogether.route,
                             "settings",

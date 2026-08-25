@@ -275,7 +275,7 @@
     <string name="wrapped_total_artists_subtitle">ศิลปินที่ไม่ซ้ำกัน!</string>
     <string name="wrapped_total_songs_title">คุณฟังไปทั้งหมด</string>
     <string name="wrapped_total_songs_subtitle">เพลงที่ไม่ซ้ำกัน!</string>
-    <string name="wrapped_intro_title">METROLIST</string>
+    <string name="wrapped_intro_title">YOUTUBE MUSIC</string>
     <string name="wrapped_intro_subtitle">ได้เวลามาดูสิ่งที่คุณฟังไปตลอดปี</string>
     <string name="wrapped_intro_button">ไปดูกันเลย!</string>
     <string name="wrapped_logo_content_description">โลโก้ Metrolist</string>
@@ -603,7 +603,7 @@
     <string name="like_what_i_do">ชอบผลงานของฉันไหม?</string>
     <string name="buy_mo_a_coffee">เลี้ยงกาแฟฉันสักแก้ว!</string>
     <string name="community_and_info">ชุมชนและข้อมูล</string>
-    <string name="metrolist">METROLIST</string>
+    <string name="metrolist">YOUTUBE MUSIC</string>
     <string name="wanna_play_favorite_song">อยากเล่นเพลงโปรดของพวกเขาไหม?</string>
     <string name="yeah">ใช่เลย!</string>
     <string name="stands_with_palestine">โปรเจกต์นี้ขอยืนหยัดเคียงข้างปาเลสไตน์ 🇵🇸</string>

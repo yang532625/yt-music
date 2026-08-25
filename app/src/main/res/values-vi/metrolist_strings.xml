@@ -354,7 +354,7 @@
     <string name="enable">Cho phép</string>
     <string name="credits_instagram">Instagram</string>
     <string name="save_episode_for_later">Lưu để nghe sau</string>
-    <string name="metrolist">METROLIST</string>
+    <string name="metrolist">YOUTUBE MUSIC</string>
     <string name="credits_license_name">Giấy phép Công cộng GNU phiên bản 3.0 (GPLv3)</string>
     <string name="daily_discover_based_on">Dựa trên %1$s</string>
     <string name="logout_keep">Giữ lại</string>
@@ -511,7 +511,7 @@
     <string name="wrapped_total_artists_subtitle">nghệ sĩ độc bản!</string>
     <string name="wrapped_total_songs_title">Bạn đã được nghe</string>
     <string name="wrapped_total_songs_subtitle">các bài hát độc đáo!</string>
-    <string name="wrapped_intro_title">METROLIST</string>
+    <string name="wrapped_intro_title">YOUTUBE MUSIC</string>
     <string name="wrapped_intro_subtitle">đã đến lúc xem bạn đã nghe những gì trong suốt năm qua…</string>
     <string name="wrapped_intro_button">đi nào!</string>
     <string name="wrapped_ready_title">WRAPPED CỦA BẠN ĐÃ SẴN SÀNG!</string>

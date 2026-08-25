@@ -65,10 +65,10 @@ fun AppNavigationRail(
     pureBlack: Boolean = false,
     onSearchLongClick: (() -> Unit)? = null
 ) {
-    val containerColor = Color.Black
+    val containerColor = Color(0xFF030303)
     val haptics = LocalHapticFeedback.current
     val viewConfiguration = LocalViewConfiguration.current
-    val inactiveColor = Color.White.copy(alpha = 0.55f)
+    val inactiveColor = Color.White.copy(alpha = 0.69f)
     val selectedColor = Color.White
     val itemColors = NavigationRailItemDefaults.colors(
         selectedIconColor = selectedColor,
@@ -155,11 +155,11 @@ fun AppNavigationBar(
     slimNav: Boolean = false,
     onSearchLongClick: (() -> Unit)? = null
 ) {
-    val containerColor = Color.Black
+    val containerColor = Color(0xFF030303)
     val contentColor = Color.White
     val haptics = LocalHapticFeedback.current
     val viewConfiguration = LocalViewConfiguration.current
-    val inactiveColor = Color.White.copy(alpha = 0.55f)
+    val inactiveColor = Color.White.copy(alpha = 0.69f)
     val selectedColor = Color.White
     val itemColors = NavigationBarItemDefaults.colors(
         selectedIconColor = selectedColor,

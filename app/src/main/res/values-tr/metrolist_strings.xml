@@ -245,7 +245,7 @@
     <string name="wrapped_total_artists_subtitle">farklı sanatçı!</string>
     <string name="wrapped_total_songs_title">Şunları dinledin</string>
     <string name="wrapped_total_songs_subtitle">farklı şarkı!</string>
-    <string name="wrapped_intro_title">METROLIST</string>
+    <string name="wrapped_intro_title">YOUTUBE MUSIC</string>
     <string name="wrapped_intro_subtitle">bu yıl neler dinlediğine bakma zamanı…</string>
     <string name="wrapped_intro_button">hadi başlayalım!</string>
     <string name="wrapped_logo_content_description">Metrolist Logosu</string>
@@ -606,7 +606,7 @@
     <string name="like_what_i_do">Yaptıklarımdan hoşlanıyor musunuz?</string>
     <string name="buy_mo_a_coffee">Bana bir kahve ısmarla!</string>
     <string name="community_and_info">Topluluk ve Bilgi</string>
-    <string name="metrolist">METROLIST</string>
+    <string name="metrolist">YOUTUBE MUSIC</string>
     <string name="wanna_play_favorite_song">Onların en sevdiği şarkıyı çalmak ister misin?</string>
     <string name="yeah">Evet!</string>
     <string name="stands_with_palestine">Bu proje Filistin\'in yanındadır 🇵🇸</string>
