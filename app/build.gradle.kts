@@ -102,8 +102,8 @@ android {
         applicationId = applicationIdOverride ?: baseApplicationId
         minSdk = 26
         targetSdk = 36
-        versionCode = 152
-        versionName = "13.7.1"
+        versionCode = 153
+        versionName = "13.7.2"
         resValue("string", "app_name", appNameOverride ?: "YT Music")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
