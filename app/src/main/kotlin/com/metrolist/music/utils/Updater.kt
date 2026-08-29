@@ -10,7 +10,6 @@ import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.request.get
 import io.ktor.client.request.header
-import io.ktor.client.statement.bodyAsBytes
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpHeaders
 import kotlinx.coroutines.Dispatchers
@@ -46,6 +45,10 @@ object Updater {
     private const val CHECK_INTERVAL_MILLIS = 2 * 60 * 60 * 1000L
     const val GITHUB_REPO = "yang532625/yt-music"
     const val RELEASES_URL = "https://github.com/$GITHUB_REPO/releases"
+    /** Stable share / latest-download asset name for releases. */
+    const val SHARE_APK_ASSET_NAME = "YT-Music.apk"
+    const val SHARE_APK_URL =
+        "https://github.com/$GITHUB_REPO/releases/latest/download/$SHARE_APK_ASSET_NAME"
     private const val API_LATEST = "https://api.github.com/repos/$GITHUB_REPO/releases/latest"
     private const val API_ALL = "https://api.github.com/repos/$GITHUB_REPO/releases?per_page=20"
     private const val USER_AGENT = "YT-Music-Android (${BuildConfig.VERSION_NAME})"
@@ -175,6 +178,12 @@ object Updater {
     fun getDownloadUrlForCurrentVariant(releaseInfo: ReleaseInfo): String? {
         val (currentArch, currentVariant) = getCurrentAppVariant()
 
+        // Prefer the stable share asset name when present (YT-Music.apk)
+        releaseInfo.assets
+            .find { it.name.equals(SHARE_APK_ASSET_NAME, ignoreCase = true) }
+            ?.downloadUrl
+            ?.let { return it }
+
         return releaseInfo.assets
             .find { it.architecture == currentArch && it.variant == currentVariant }
             ?.downloadUrl
@@ -227,15 +236,36 @@ object Updater {
         withContext(Dispatchers.IO) {
             runCatching {
                 destination.parentFile?.mkdirs()
-                val bytes =
-                    client
-                        .get(url) {
-                            header(HttpHeaders.UserAgent, USER_AGENT)
-                            header(HttpHeaders.Accept, "application/octet-stream")
-                        }.bodyAsBytes()
-                require(bytes.size > 1024) { "Downloaded file is too small to be an APK" }
-                destination.writeBytes(bytes)
+                val partial = File(destination.parentFile, "${destination.name}.part")
+                if (partial.exists()) partial.delete()
+
+                // Stream to disk — bodyAsBytes() OOMs on the ~50MB APK.
+                val connection =
+                    java.net.URI.create(url).toURL().openConnection().apply {
+                        setRequestProperty(HttpHeaders.UserAgent, USER_AGENT)
+                        setRequestProperty(HttpHeaders.Accept, "application/octet-stream")
+                        connectTimeout = 30_000
+                        readTimeout = 120_000
+                    }
+                connection.getInputStream().use { input ->
+                    partial.outputStream().buffered().use { output ->
+                        input.copyTo(output)
+                    }
+                }
+
+                require(partial.length() > 1024L) { "Downloaded file is too small to be an APK" }
+                if (destination.exists() && !destination.delete()) {
+                    throw IllegalStateException("Could not replace existing APK file")
+                }
+                if (!partial.renameTo(destination)) {
+                    partial.copyTo(destination, overwrite = true)
+                    partial.delete()
+                }
                 destination
+            }.onFailure {
+                runCatching {
+                    File(destination.parentFile, "${destination.name}.part").delete()
+                }
             }
         }
 }
