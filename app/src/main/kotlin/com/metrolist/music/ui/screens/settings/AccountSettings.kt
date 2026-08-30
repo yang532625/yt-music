@@ -52,6 +52,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
+import android.content.Intent
 import coil3.compose.AsyncImage
 import com.metrolist.innertube.YouTube
 import com.metrolist.innertube.utils.parseCookieString
@@ -410,6 +411,28 @@ fun AccountSettings(
                 onClick = {
                     onClose()
                     navController.navigate("settings")
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.surfaceContainer)
+            )
+
+            Spacer(Modifier.height(4.dp))
+
+            PreferenceEntry(
+                title = { Text(stringResource(R.string.share_app)) },
+                icon = { Icon(painterResource(R.drawable.share), null) },
+                onClick = {
+                    val shareText =
+                        context.getString(R.string.share_app_message, Updater.SHARE_APK_URL)
+                    val intent =
+                        Intent(Intent.ACTION_SEND).apply {
+                            type = "text/plain"
+                            putExtra(Intent.EXTRA_TEXT, shareText)
+                        }
+                    context.startActivity(
+                        Intent.createChooser(intent, context.getString(R.string.share_app)),
+                    )
                 },
                 modifier = Modifier
                     .fillMaxWidth()

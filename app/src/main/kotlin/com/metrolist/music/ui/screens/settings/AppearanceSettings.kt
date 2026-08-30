@@ -165,7 +165,7 @@ fun AppearanceSettings(
     val (useNewPlayerDesign, onUseNewPlayerDesignChange) =
         rememberPreference(
             UseNewPlayerDesignKey,
-            defaultValue = true,
+            defaultValue = false,
         )
     val (miniPlayerBackground, onMiniPlayerBackgroundChange) =
         rememberEnumPreference(
@@ -209,7 +209,7 @@ fun AppearanceSettings(
     val (playerButtonsStyle, onPlayerButtonsStyleChange) =
         rememberEnumPreference(
             PlayerButtonsStyleKey,
-            defaultValue = PlayerButtonsStyle.PRIMARY,
+            defaultValue = PlayerButtonsStyle.DEFAULT,
         )
     val (lyricsPosition, onLyricsPositionChange) =
         rememberEnumPreference(

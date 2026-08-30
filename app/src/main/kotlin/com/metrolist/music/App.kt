@@ -31,6 +31,7 @@ import com.metrolist.music.di.ApplicationScope
 import com.metrolist.music.extensions.toEnum
 import com.metrolist.music.extensions.toInetSocketAddress
 import com.metrolist.music.utils.CrashHandler
+import com.metrolist.music.utils.InnerTubeCookieSync
 import com.metrolist.music.utils.YTPlayerUtils
 import com.metrolist.music.utils.cipher.CipherDeobfuscator
 import com.metrolist.music.utils.dataStore
@@ -110,6 +111,12 @@ class App :
             launch(Dispatchers.IO) {
                 delay(1500)
                 runCatching { CipherDeobfuscator.prewarm() }
+            }
+
+            // Sync WebView CookieManager <-> InnerTube DataStore (SAPISID) before PoToken warm-up
+            launch(Dispatchers.IO) {
+                runCatching { InnerTubeCookieSync.sync(this@App) }
+                    .onFailure { Timber.w(it, "InnerTubeCookieSync failed") }
             }
 
             // Warm the PoToken/BotGuard generator (the ~2-5s cold cost) once a session (visitorData) is

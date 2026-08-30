@@ -554,6 +554,8 @@ class MainActivity : ComponentActivity() {
         val checkForUpdates by rememberPreference(CheckForUpdatesKey, defaultValue = true)
         var showUpdateDialog by remember { mutableStateOf(false) }
         var isInstallingUpdate by remember { mutableStateOf(false) }
+        var isDownloadingUpdate by remember { mutableStateOf(false) }
+        var updateApkReady by remember { mutableStateOf(false) }
         val updateScope = rememberCoroutineScope()
 
         if (BuildConfig.UPDATER_AVAILABLE) {
@@ -563,6 +565,7 @@ class MainActivity : ComponentActivity() {
                         UpdateCoordinator.checkForUpdates(
                             context = this@MainActivity,
                             notifyIfAvailable = true,
+                            autoDownload = true,
                         ).onSuccess { (releaseInfo, hasUpdate) ->
                             if (releaseInfo != null) {
                                 withContext(Dispatchers.Main) {
@@ -570,6 +573,7 @@ class MainActivity : ComponentActivity() {
                                     val fromNotification =
                                         intent?.getBooleanExtra(UpdateCoordinator.EXTRA_SHOW_UPDATE_DIALOG, false) == true
                                     if (hasUpdate || fromNotification) {
+                                        updateApkReady = UpdateCoordinator.isApkReady(this@MainActivity)
                                         showUpdateDialog = true
                                     }
                                 }
@@ -582,32 +586,59 @@ class MainActivity : ComponentActivity() {
             }
         }
 
+        // Auto-download when the update dialog appears and the APK is not ready yet
+        LaunchedEffect(showUpdateDialog, latestVersionName) {
+            if (showUpdateDialog &&
+                latestVersionName != BuildConfig.VERSION_NAME &&
+                !UpdateCoordinator.isApkReady(this@MainActivity)
+            ) {
+                isDownloadingUpdate = true
+                withContext(Dispatchers.IO) {
+                    UpdateCoordinator.preloadApk(this@MainActivity)
+                }
+                updateApkReady = UpdateCoordinator.isApkReady(this@MainActivity)
+                isDownloadingUpdate = false
+            } else if (showUpdateDialog) {
+                updateApkReady = UpdateCoordinator.isApkReady(this@MainActivity)
+            }
+        }
+
         if (showUpdateDialog && latestVersionName != BuildConfig.VERSION_NAME) {
             AlertDialog(
-                onDismissRequest = { if (!isInstallingUpdate) showUpdateDialog = false },
+                onDismissRequest = {
+                    if (!isInstallingUpdate && !isDownloadingUpdate) showUpdateDialog = false
+                },
                 title = { Text(stringResource(R.string.update_available_title)) },
                 text = {
                     Text(
-                        if (isInstallingUpdate) {
-                            stringResource(R.string.downloading_update)
-                        } else {
-                            stringResource(R.string.update_available_message, latestVersionName)
+                        when {
+                            isInstallingUpdate || isDownloadingUpdate ->
+                                stringResource(R.string.downloading_update)
+                            updateApkReady ->
+                                stringResource(R.string.update_ready_to_install)
+                            else ->
+                                stringResource(R.string.update_available_message, latestVersionName)
                         },
                     )
                 },
                 confirmButton = {
                     TextButton(
-                        enabled = !isInstallingUpdate,
+                        enabled = !isInstallingUpdate && !isDownloadingUpdate,
                         onClick = {
-                            val url = Updater.getLatestDownloadUrl() ?: return@TextButton
                             updateScope.launch {
                                 isInstallingUpdate = true
                                 runCatching {
                                     if (!ApkInstaller.canRequestInstall(this@MainActivity)) {
                                         ApkInstaller.requestInstallPermission(this@MainActivity)
-                                    } else {
-                                        ApkInstaller.downloadAndInstall(this@MainActivity, url)
+                                    } else if (UpdateCoordinator.isApkReady(this@MainActivity)) {
+                                        ApkInstaller.install(this@MainActivity)
                                         showUpdateDialog = false
+                                    } else {
+                                        val url = Updater.getLatestDownloadUrl()
+                                        if (url != null) {
+                                            ApkInstaller.downloadAndInstall(this@MainActivity, url)
+                                            showUpdateDialog = false
+                                        }
                                     }
                                 }
                                 isInstallingUpdate = false
@@ -619,7 +650,7 @@ class MainActivity : ComponentActivity() {
                 },
                 dismissButton = {
                     TextButton(
-                        enabled = !isInstallingUpdate,
+                        enabled = !isInstallingUpdate && !isDownloadingUpdate,
                         onClick = { showUpdateDialog = false },
                     ) {
                         Text(stringResource(R.string.update_later))

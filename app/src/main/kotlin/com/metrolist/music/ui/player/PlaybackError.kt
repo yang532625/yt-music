@@ -7,6 +7,7 @@ package com.metrolist.music.ui.player
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -18,6 +19,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -36,112 +38,173 @@ import com.metrolist.music.R
 fun PlaybackError(
     error: PlaybackException,
     retry: () -> Unit,
+    onSignIn: (() -> Unit)? = null,
 ) {
-    // Build detailed error info for debugging
-    val rawErrorMessage = error.cause?.cause?.message 
-        ?: error.cause?.message 
-        ?: error.message 
-        ?: stringResource(R.string.error_unknown)
-    
-    // Check if this is an age-restricted content error
-    // Age-restricted content typically returns 403 Forbidden or contains age-related messages
-    val isAgeRestricted = rawErrorMessage.contains("age", ignoreCase = true) ||
-            rawErrorMessage.contains("Sign in to confirm your age", ignoreCase = true) ||
-            rawErrorMessage.contains("LOGIN_REQUIRED", ignoreCase = true) ||
-            rawErrorMessage.contains("confirm your age", ignoreCase = true) ||
-            rawErrorMessage.contains("403", ignoreCase = true) ||
-            rawErrorMessage.contains("Response code: 403", ignoreCase = true) ||
-            error.errorCode == PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS
+    val rawErrorMessage =
+        error.cause?.cause?.message
+            ?: error.cause?.message
+            ?: error.message
+            ?: stringResource(R.string.error_unknown)
 
-    // Check if this is a "job cancelled" error from YouTube
-    // YouTube returns this when the playback job cannot be started (often transient)
-    val isJobCancelled = rawErrorMessage.contains("job", ignoreCase = true) &&
-            (rawErrorMessage.contains("cancelled", ignoreCase = true) ||
+    val isBotCheck = isBotCheckError(rawErrorMessage)
+
+    // Age-restricted (exclude bot LOGIN_REQUIRED — that needs Sign in, not the age message)
+    val isAgeRestricted =
+        !isBotCheck &&
+            (
+                rawErrorMessage.contains("Sign in to confirm your age", ignoreCase = true) ||
+                    rawErrorMessage.contains("confirm your age", ignoreCase = true) ||
+                    (
+                        rawErrorMessage.contains("age", ignoreCase = true) &&
+                            !rawErrorMessage.contains("bot", ignoreCase = true)
+                    ) ||
+                    (
+                        rawErrorMessage.contains("LOGIN_REQUIRED", ignoreCase = true) &&
+                            !rawErrorMessage.contains("bot", ignoreCase = true)
+                    ) ||
+                    rawErrorMessage.contains("403", ignoreCase = true) ||
+                    rawErrorMessage.contains("Response code: 403", ignoreCase = true) ||
+                    error.errorCode == PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS
+            )
+
+    val isJobCancelled =
+        rawErrorMessage.contains("job", ignoreCase = true) &&
+            (
+                rawErrorMessage.contains("cancelled", ignoreCase = true) ||
                     rawErrorMessage.contains("canceled", ignoreCase = true) ||
-                    rawErrorMessage.contains("cancellat", ignoreCase = true))
-    
-    val errorMessage = if (isAgeRestricted) {
-        "This app does not support playing age-restricted songs. We are working on fixing this issue."
-    } else if (isJobCancelled) {
-        stringResource(R.string.error_job_cancelled)
-    } else {
-        rawErrorMessage
-    }
-    
+                    rawErrorMessage.contains("cancellat", ignoreCase = true)
+            )
+
+    val errorMessage =
+        when {
+            isBotCheck -> stringResource(R.string.error_sign_in_bot)
+            isAgeRestricted ->
+                "This app does not support playing age-restricted songs. We are working on fixing this issue."
+            isJobCancelled -> stringResource(R.string.error_job_cancelled)
+            else -> rawErrorMessage
+        }
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp)
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
     ) {
-        // Error icon
         Icon(
             painter = painterResource(R.drawable.error),
             contentDescription = null,
             tint = MaterialTheme.colorScheme.error,
-            modifier = Modifier.size(48.dp)
+            modifier = Modifier.size(48.dp),
         )
-        
+
         Spacer(modifier = Modifier.height(12.dp))
-        
-        // Main error message
+
         Text(
             text = stringResource(R.string.error_playback_failed),
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.error,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
         )
-        
+
         Spacer(modifier = Modifier.height(8.dp))
-        
-        // Error details
+
         Text(
             text = errorMessage,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
             maxLines = 3,
-            overflow = TextOverflow.Ellipsis
+            overflow = TextOverflow.Ellipsis,
         )
-        
+
         Spacer(modifier = Modifier.height(4.dp))
-        
-        // Error code
+
         Text(
             text = "Code: ${getErrorCodeName(error.errorCode)} (${error.errorCode})",
-            style = MaterialTheme.typography.bodySmall.copy(
-                fontFamily = FontFamily.Monospace,
-                fontSize = 11.sp
-            ),
+            style =
+                MaterialTheme.typography.bodySmall.copy(
+                    fontFamily = FontFamily.Monospace,
+                    fontSize = 11.sp,
+                ),
             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
         )
-        
+
         Spacer(modifier = Modifier.height(16.dp))
-        
-        // Retry button
-        Button(
-            onClick = retry,
-            shape = RoundedCornerShape(20.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary
-            )
+
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Icon(
-                painter = painterResource(R.drawable.replay),
-                contentDescription = null,
-                modifier = Modifier.size(18.dp)
-            )
-            Spacer(modifier = Modifier.width(6.dp))
-            Text(text = stringResource(R.string.retry))
+            if (isBotCheck && onSignIn != null) {
+                Button(
+                    onClick = onSignIn,
+                    shape = RoundedCornerShape(20.dp),
+                    colors =
+                        ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                        ),
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.login),
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(text = stringResource(R.string.action_login))
+                }
+            }
+
+            if (isBotCheck && onSignIn != null) {
+                OutlinedButton(
+                    onClick = retry,
+                    shape = RoundedCornerShape(20.dp),
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.replay),
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(text = stringResource(R.string.retry))
+                }
+            } else {
+                Button(
+                    onClick = retry,
+                    shape = RoundedCornerShape(20.dp),
+                    colors =
+                        ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                        ),
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.replay),
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(text = stringResource(R.string.retry))
+                }
+            }
         }
     }
 }
 
-/**
- * Get human-readable error code name from PlaybackException error code
- */
+fun isBotCheckError(message: String?): Boolean {
+    if (message.isNullOrBlank()) return false
+    return message.contains("not a bot", ignoreCase = true) ||
+        (
+            message.contains("bot", ignoreCase = true) &&
+                (
+                    message.contains("LOGIN_REQUIRED", ignoreCase = true) ||
+                        message.contains("UNPLAYABLE", ignoreCase = true) ||
+                        message.contains("Sign in", ignoreCase = true)
+                )
+        )
+}
+
 private fun getErrorCodeName(errorCode: Int): String {
     return when (errorCode) {
         PlaybackException.ERROR_CODE_UNSPECIFIED -> "UNSPECIFIED"

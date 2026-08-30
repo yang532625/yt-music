@@ -15,7 +15,9 @@ import com.metrolist.innertube.models.YouTubeClient.Companion.WEB_REMIX
 import com.metrolist.innertube.models.response.PlayerResponse
 import com.metrolist.innertube.strategy.ContentAwareFallbackStrategy
 import com.metrolist.innertube.strategy.ContentHints
+import com.metrolist.innertube.utils.parseCookieString
 import com.metrolist.music.constants.AudioQuality
+import com.metrolist.music.ui.player.isBotCheckError
 import com.metrolist.music.utils.YTPlayerUtils.MAIN_CLIENT
 import com.metrolist.music.utils.YTPlayerUtils.validateStatus
 import com.metrolist.music.utils.cipher.CipherDeobfuscator
@@ -128,7 +130,7 @@ object YTPlayerUtils {
         Timber.tag(TAG).d("Content type detection (preliminary):")
         Timber.tag(TAG).d("  isUploadedTrack (from playlistId): $isUploadedTrack")
 
-        val isLoggedIn = YouTube.cookie != null
+        val isLoggedIn = YouTube.cookie?.let { "SAPISID" in parseCookieString(it) } == true
         Timber.tag(TAG).d("Authentication status: ${if (isLoggedIn) "LOGGED_IN" else "ANONYMOUS"}")
 
         // Get signature timestamp (same as before for normal content)
@@ -152,10 +154,30 @@ object YTPlayerUtils {
 
         // Try WEB_REMIX with signature timestamp and poToken (same as before)
         Timber.tag(logTag).d("Attempting to get player response using MAIN_CLIENT: ${MAIN_CLIENT.clientName}")
-        val mainPlayerResponse = YouTube
+        var mainPlayerResponse = YouTube
             .player(videoId, playlistId, MAIN_CLIENT, signatureTimestamp.timestamp, poToken?.playerRequestPoToken)
             .onFailure { Timber.tag(logTag).w(it, "Metadata client failed; continuing with playback fallbacks") }
             .getOrNull()
+
+        val mainReason = mainPlayerResponse?.playabilityStatus?.reason.orEmpty()
+        val mainStatusEarly = mainPlayerResponse?.playabilityStatus?.status
+        val isBotFromMain = isBotCheckError(mainReason) ||
+            isBotCheckError("$mainStatusEarly $mainReason")
+
+        // Bot check: invalidate PoToken once and retry WEB_REMIX with a fresh token
+        if (isBotFromMain && sessionId != null && MAIN_CLIENT.useWebPoTokens) {
+            Timber.tag(logTag).w("Bot check on MAIN_CLIENT — regenerating PoToken and retrying")
+            runCatching { poTokenGenerator.invalidate() }
+            try {
+                poToken = poTokenGenerator.getWebClientPoToken(videoId, sessionId)
+            } catch (e: Exception) {
+                Timber.tag(logTag).e(e, "PoToken regeneration failed after bot check")
+            }
+            mainPlayerResponse = YouTube
+                .player(videoId, playlistId, MAIN_CLIENT, signatureTimestamp.timestamp, poToken?.playerRequestPoToken)
+                .onFailure { Timber.tag(logTag).w(it, "WEB_REMIX retry after bot check failed") }
+                .getOrNull()
+        }
 
         // Debug uploaded track response
         if (isUploadedTrack || playlistId?.contains("MLPT") == true) {
@@ -166,9 +188,16 @@ object YTPlayerUtils {
             println("[PLAYBACK_DEBUG] Adaptive formats count: ${mainPlayerResponse?.streamingData?.adaptiveFormats?.size ?: 0}")
         }
 
-        // Check if WEB_REMIX response indicates age-restricted
+        // Age / login gates — do NOT treat "not a bot" as age-restricted (wrong client path)
         val mainStatus = mainPlayerResponse?.playabilityStatus?.status
-        val isAgeRestrictedFromResponse = mainStatus in listOf("AGE_CHECK_REQUIRED", "AGE_VERIFICATION_REQUIRED", "LOGIN_REQUIRED", "CONTENT_CHECK_REQUIRED")
+        val mainStatusReason = mainPlayerResponse?.playabilityStatus?.reason.orEmpty()
+        val isBotCheck = isBotCheckError(mainStatusReason) || isBotCheckError("$mainStatus $mainStatusReason")
+        val ageGateStatuses = listOf("AGE_CHECK_REQUIRED", "AGE_VERIFICATION_REQUIRED", "CONTENT_CHECK_REQUIRED")
+        val isAgeRestrictedFromResponse =
+            !isBotCheck && (
+                mainStatus in ageGateStatuses ||
+                    (mainStatus == "LOGIN_REQUIRED" && !isBotCheckError(mainStatusReason))
+            )
         val wasOriginallyAgeRestricted = isAgeRestrictedFromResponse
 
         var audioConfig = mainPlayerResponse?.playerConfig?.audioConfig
@@ -179,11 +208,12 @@ object YTPlayerUtils {
         var streamExpiresInSeconds: Int? = null
         var streamPlayerResponse: PlayerResponse? = null
 
-        // Check current status
         val currentStatus = mainPlayerResponse?.playabilityStatus?.status
-        val isAgeRestricted = currentStatus in listOf("AGE_CHECK_REQUIRED", "AGE_VERIFICATION_REQUIRED", "LOGIN_REQUIRED", "CONTENT_CHECK_REQUIRED")
+        val isAgeRestricted = isAgeRestrictedFromResponse
 
-        if (isAgeRestricted) {
+        if (isBotCheck) {
+            Timber.tag(logTag).w("Bot / LOGIN_REQUIRED playability: videoId=$videoId reason=$mainStatusReason loggedIn=$isLoggedIn")
+        } else if (isAgeRestricted) {
             Timber.tag(logTag).d("Content is still age-restricted (status: $currentStatus), will try fallback clients")
             Timber.tag(TAG)
                 .i("Age-restricted content detected: videoId=$videoId, status=$currentStatus")

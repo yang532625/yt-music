@@ -154,4 +154,20 @@ class PoTokenGenerator {
             streamingDataPoToken = playerPot,
         )
     }
+
+    /** Drop the cached BotGuard WebView so the next call rebuilds tokens from scratch. */
+    suspend fun invalidate() {
+        webPoTokenGenLock.withLock {
+            try {
+                withContext(Dispatchers.Main) {
+                    webPoTokenGenerator?.close()
+                }
+            } catch (e: Exception) {
+                Timber.tag(TAG).w(e, "Error closing PoTokenWebView during invalidate")
+            }
+            webPoTokenGenerator = null
+            webPoTokenStreamingPot = null
+            webPoTokenSessionId = null
+        }
+    }
 }

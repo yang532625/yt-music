@@ -13,10 +13,12 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -31,6 +33,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -71,6 +74,7 @@ import coil3.compose.AsyncImage
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import com.metrolist.music.LocalListenTogetherManager
+import com.metrolist.music.LocalNavController
 import com.metrolist.music.LocalPlayerConnection
 import com.metrolist.music.R
 import com.metrolist.music.constants.CropAlbumArtKey
@@ -202,6 +206,8 @@ fun Thumbnail(
     isPlayerExpanded: () -> Boolean = { true },
     isLandscape: Boolean = false,
     isListenTogetherGuest: Boolean = false,
+    onCollapse: (() -> Unit)? = null,
+    onMore: (() -> Unit)? = null,
 ) {
     val playerConnection = LocalPlayerConnection.current ?: return
     val context = LocalContext.current
@@ -312,9 +318,13 @@ fun Thumbnail(
                 .align(Alignment.Center),
         ) {
             error?.let { playbackError ->
+                val navController = LocalNavController.current
                 PlaybackError(
                     error = playbackError,
                     retry = playerConnection.player::prepare,
+                    onSignIn = {
+                        navController.navigate("login")
+                    },
                 )
             }
         }
@@ -333,12 +343,14 @@ fun Thumbnail(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = if (isLandscape) Arrangement.Center else Arrangement.Top
             ) {
-                // Now Playing header - hide in landscape mode
+                // YTM-style top chrome — hide in landscape mode
                 if (!isLandscape) {
                     ThumbnailHeader(
                         queueTitle = queueTitle,
                         albumTitle = mediaMetadata?.album?.title,
-                        textColor = textBackgroundColor
+                        textColor = textBackgroundColor,
+                        onCollapse = onCollapse,
+                        onMore = onMore,
                     )
                 }
                 
@@ -431,54 +443,72 @@ fun Thumbnail(
 }
 
 /**
- * Header component showing "Now Playing" and queue/album title.
+ * Top chrome matching official YTM Android: collapse, optional context, cast + overflow.
  */
 @Composable
 private fun ThumbnailHeader(
     queueTitle: String?,
     albumTitle: String?,
     textColor: Color,
-    modifier: Modifier = Modifier
+    onCollapse: (() -> Unit)?,
+    onMore: (() -> Unit)?,
+    modifier: Modifier = Modifier,
 ) {
     val listenTogetherManager = LocalListenTogetherManager.current
-    val listenTogetherRoleState = listenTogetherManager?.role?.collectAsStateWithLifecycle(initialValue = RoomRole.NONE)
-    val isListenTogetherGuest = listenTogetherRoleState?.value == RoomRole.GUEST
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
+    val listenTogetherRoleState =
+        listenTogetherManager?.role?.collectAsStateWithLifecycle(initialValue = RoomRole.NONE)
+    val role = listenTogetherRoleState?.value ?: RoomRole.NONE
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .padding(horizontal = 4.dp, vertical = 2.dp),
     ) {
+        IconButton(onClick = { onCollapse?.invoke() }) {
+            Icon(
+                painter = painterResource(R.drawable.expand_more),
+                contentDescription = stringResource(R.string.now_playing),
+                tint = textColor,
+            )
+        }
+
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier
-                .align(Alignment.Center)
-                .padding(horizontal = 48.dp)
+            modifier = Modifier.weight(1f),
         ) {
-            // Listen Together indicator
-            if (listenTogetherRoleState?.value != RoomRole.NONE) {
+            if (role != RoomRole.NONE) {
                 Text(
-                    text = if (listenTogetherRoleState?.value == RoomRole.HOST) "Hosting Listen Together" else "Listening Together",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = textColor
+                    text = if (role == RoomRole.HOST) "Hosting Listen Together" else "Listening Together",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = textColor,
+                    maxLines = 1,
                 )
             } else {
-                Text(
-                    text = stringResource(R.string.now_playing),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = textColor
+                val playingFrom = queueTitle ?: albumTitle
+                if (!playingFrom.isNullOrBlank()) {
+                    Text(
+                        text = playingFrom,
+                        style = MaterialTheme.typography.labelLarge,
+                        color = textColor.copy(alpha = 0.85f),
+                        maxLines = 1,
+                        modifier = Modifier.basicMarquee(),
+                    )
+                }
+            }
+        }
+
+        CastButton(tintColor = textColor)
+        if (onMore != null) {
+            IconButton(onClick = onMore) {
+                Icon(
+                    painter = painterResource(R.drawable.more_vert),
+                    contentDescription = null,
+                    tint = textColor,
                 )
             }
-            val playingFrom = queueTitle ?: albumTitle
-            if (!playingFrom.isNullOrBlank()) {
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = playingFrom,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = textColor.copy(alpha = 0.8f),
-                    maxLines = 1,
-                    modifier = Modifier.basicMarquee()
-                )
-            }
+        } else {
+            Spacer(modifier = Modifier.size(48.dp))
         }
     }
 }
@@ -575,14 +605,6 @@ private fun ThumbnailItem(
                     cropArtwork = cropAlbumArt
                 )
             }
-            
-            // Cast button at top-right corner of thumbnail
-            CastButton(
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(8.dp),
-                tintColor = textBackgroundColor
-            )
         }
     }
 }

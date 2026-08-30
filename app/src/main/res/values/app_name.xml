@@ -38,4 +38,10 @@
     <string name="feedback_send_whatsapp">Send by WhatsApp</string>
     <string name="feedback_email_subject">YT Music feedback</string>
     <string name="feedback_no_message">(No message entered)</string>
+    <string name="error_sign_in_bot">Sign in again to confirm you\'re not a bot, then retry playback.</string>
+    <string name="share_app">Share app</string>
+    <string name="share_app_message">Install YT Music (APK):\n%1$s</string>
+    <string name="update_ready_to_install">Update downloaded. Tap Install to finish.</string>
+    <string name="downloading_update_auto">Downloading update…</string>
+    <string name="about_developer_role">Developer</string>
 </resources>

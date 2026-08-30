@@ -221,6 +221,24 @@ fun SettingsScreen(
                         onClick = { navController.navigate("settings/feedback") },
                     ),
                 )
+                add(
+                    Material3SettingsItem(
+                        icon = painterResource(R.drawable.share),
+                        title = { Text(stringResource(R.string.share_app)) },
+                        onClick = {
+                            val shareText =
+                                context.getString(R.string.share_app_message, Updater.SHARE_APK_URL)
+                            val intent =
+                                Intent(Intent.ACTION_SEND).apply {
+                                    type = "text/plain"
+                                    putExtra(Intent.EXTRA_TEXT, shareText)
+                                }
+                            context.startActivity(
+                                Intent.createChooser(intent, context.getString(R.string.share_app)),
+                            )
+                        },
+                    ),
+                )
                 if (BuildConfig.UPDATER_AVAILABLE) {
                     add(
                         Material3SettingsItem(

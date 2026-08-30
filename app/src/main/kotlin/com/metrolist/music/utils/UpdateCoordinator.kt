@@ -15,8 +15,6 @@ import com.metrolist.music.R
 import com.metrolist.music.constants.CheckForUpdatesKey
 import com.metrolist.music.constants.LastUpdateCheckTimeKey
 import com.metrolist.music.constants.UpdateNotificationsEnabledKey
-import com.metrolist.music.utils.dataStore
-import com.metrolist.music.utils.safeDataStoreEdit
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -27,9 +25,14 @@ object UpdateCoordinator {
     @Volatile
     var pendingUpdateVersion: String? = null
 
+    @Volatile
+    var downloadedApkReady: Boolean = false
+        private set
+
     suspend fun checkForUpdates(
         context: Context,
         notifyIfAvailable: Boolean = true,
+        autoDownload: Boolean = true,
     ): Result<Pair<ReleaseInfo?, Boolean>> {
         if (!BuildConfig.UPDATER_AVAILABLE) {
             return Result.success(null to false)
@@ -39,6 +42,7 @@ object UpdateCoordinator {
         val updatesEnabled = app.dataStore.get(CheckForUpdatesKey, true)
         if (!updatesEnabled) {
             pendingUpdateVersion = null
+            downloadedApkReady = false
             return Result.success(null to false)
         }
 
@@ -52,13 +56,47 @@ object UpdateCoordinator {
                     if (notifyIfAvailable && app.dataStore.get(UpdateNotificationsEnabledKey, true)) {
                         showUpdateNotification(app, releaseInfo.versionName)
                     }
+                    if (autoDownload) {
+                        preloadApk(app, releaseInfo)
+                    }
                 } else {
                     pendingUpdateVersion = null
+                    downloadedApkReady = false
                 }
             }.onFailure {
                 Timber.w(it, "Update check failed")
             }
         }
+    }
+
+    /**
+     * Download the APK in the background so Install can open the system installer immediately.
+     */
+    suspend fun preloadApk(
+        context: Context,
+        releaseInfo: ReleaseInfo? = Updater.getCachedLatestRelease(),
+    ): Boolean =
+        withContext(Dispatchers.IO) {
+            val info = releaseInfo ?: return@withContext false
+            val url = Updater.getDownloadUrlForCurrentVariant(info) ?: return@withContext false
+            val apk = ApkInstaller.apkFile(context)
+            if (apk.exists() && apk.length() > 1024 && downloadedApkReady) {
+                return@withContext true
+            }
+            Updater
+                .downloadApk(url, apk)
+                .onSuccess {
+                    downloadedApkReady = true
+                    Timber.i("Update APK preloaded: %s (%d bytes)", it.absolutePath, it.length())
+                }.onFailure {
+                    downloadedApkReady = false
+                    Timber.w(it, "Failed to preload update APK")
+                }.isSuccess
+        }
+
+    fun isApkReady(context: Context): Boolean {
+        val apk = ApkInstaller.apkFile(context)
+        return downloadedApkReady && apk.exists() && apk.length() > 1024
     }
 
     fun consumePendingUpdate(): String? {
